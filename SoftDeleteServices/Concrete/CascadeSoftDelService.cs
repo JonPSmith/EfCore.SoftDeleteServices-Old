@@ -4,9 +4,9 @@
 using System.Linq;
 using DataLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using ServiceLayer.SoftDeleteServices.Concrete.Internal;
+using SoftDeleteServices.Concrete.Internal;
 
-namespace ServiceLayer.SoftDeleteServices.Concrete
+namespace SoftDeleteServices.Concrete
 {
     public enum CascadeSoftDelWhatDoing { SoftDelete, ResetSoftDelete, CheckWhatWillDelete, HardDeleteSoftDeleted }
 

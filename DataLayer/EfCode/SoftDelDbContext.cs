@@ -2,6 +2,7 @@
 // Licensed under MIT license. See License.txt in the project root for license information.
 
 using DataLayer.EfClasses;
+using DataLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace DataLayer.EfCode
@@ -33,19 +34,18 @@ namespace DataLayer.EfCode
                 .HasForeignKey<EmployeeContract>(x => x.EmployeeSoftCascadeId)
                 .OnDelete(DeleteBehavior.ClientCascade);
 
-
-            modelBuilder.Entity<EmployeeSoftCascade>()
-                .HasQueryFilter(x => x.SoftDeleteLevel == 0);
-            modelBuilder.Entity<EmployeeContract>()
-                .HasQueryFilter(x => x.SoftDeleteLevel == 0);
-
-            modelBuilder.Entity<BookSoftDel>()
-                .HasQueryFilter(x => !x.SoftDeleted);
-
-            modelBuilder.Entity<CompanySoftCascade>()
-                .HasQueryFilter(x => x.SoftDeleteLevel == 0);
-            modelBuilder.Entity<QuoteSoftCascade>()
-                .HasQueryFilter(x => x.SoftDeleteLevel == 0);
+            //This automatically configures the two types of soft deletes
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                if (typeof(ISoftDelete).IsAssignableFrom(entityType.ClrType))
+                {
+                    entityType.AddSoftDeleteQueryFilter();
+                }
+                if (typeof(ICascadeSoftDelete).IsAssignableFrom(entityType.ClrType))
+                {
+                    entityType.AddCascadeSoftDeleteQueryFilter();
+                }
+            }
         }
     }
 }

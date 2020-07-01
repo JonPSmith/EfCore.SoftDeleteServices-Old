@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using DataLayer.EfClasses;
 using DataLayer.EfCode;
 using Microsoft.EntityFrameworkCore;
-using ServiceLayer.SoftDeleteServices.Concrete;
+using SoftDeleteServices.Concrete;
 using TestSupport.EfHelpers;
 using Xunit;
 using Xunit.Abstractions;
@@ -16,12 +16,12 @@ using Xunit.Extensions.AssertExtensions;
 
 namespace Test.UnitTests
 {
-    public class Ch11_SetCascadeSoftDelete
+    public class SetCascadeSoftDelete
     {
         private ITestOutputHelper _output;
         private readonly Regex _selectMatchRegex = new Regex(@"SELECT "".""\.""EmployeeSoftCascadeId"",", RegexOptions.None);
 
-        public Ch11_SetCascadeSoftDelete(ITestOutputHelper output)
+        public SetCascadeSoftDelete(ITestOutputHelper output)
         {
             _output = output;
         }

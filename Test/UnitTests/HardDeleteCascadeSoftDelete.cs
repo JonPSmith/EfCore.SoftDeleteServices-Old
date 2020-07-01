@@ -5,7 +5,7 @@ using System.Linq;
 using DataLayer.EfClasses;
 using DataLayer.EfCode;
 using Microsoft.EntityFrameworkCore;
-using ServiceLayer.SoftDeleteServices.Concrete;
+using SoftDeleteServices.Concrete;
 using TestSupport.EfHelpers;
 using Xunit;
 using Xunit.Abstractions;
@@ -13,11 +13,11 @@ using Xunit.Extensions.AssertExtensions;
 
 namespace Test.UnitTests
 {
-    public class Ch11_HardDeleteCascadeSoftDelete
+    public class HardDeleteCascadeSoftDelete
     {
         private ITestOutputHelper _output;
 
-        public Ch11_HardDeleteCascadeSoftDelete(ITestOutputHelper output)
+        public HardDeleteCascadeSoftDelete(ITestOutputHelper output)
         {
             _output = output;
         }

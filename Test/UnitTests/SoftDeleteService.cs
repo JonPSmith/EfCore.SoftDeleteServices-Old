@@ -6,14 +6,13 @@ using System.Linq;
 using DataLayer.EfClasses;
 using DataLayer.EfCode;
 using Microsoft.EntityFrameworkCore;
-using ServiceLayer.SoftDeleteServices.Concrete;
 using TestSupport.EfHelpers;
 using Xunit;
 using Xunit.Extensions.AssertExtensions;
 
 namespace Test.UnitTests
 {
-    public class Ch11_SoftDeleteService
+    public class SoftDeleteService
     {
         [Fact]
         public void TestAddBookWithReviewOk()
@@ -47,7 +46,7 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var book = AddBookWithReviewToDb(context);
 
-                var service = new SoftDeleteService(context);
+                var service = new SoftDeleteServices.Concrete.SoftDeleteService(context);
 
                 //ATTEMPT
                 service.SetSoftDelete(book);
@@ -72,7 +71,7 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var book = AddBookWithReviewToDb(context);
 
-                var service = new SoftDeleteService(context);
+                var service = new SoftDeleteServices.Concrete.SoftDeleteService(context);
 
                 //ATTEMPT
                 var wasFound = service.SetSoftDeleteViaKeys<BookSoftDel>(book.BookSoftDelId);
@@ -98,7 +97,7 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var book = AddBookWithReviewToDb(context);
 
-                var service = new SoftDeleteService(context);
+                var service = new SoftDeleteServices.Concrete.SoftDeleteService(context);
                 service.SetSoftDelete(book);
                 service.IsValid.ShouldBeTrue(service.GetAllErrors());
 
@@ -126,7 +125,7 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 bookId = AddBookWithReviewToDb(context).BookSoftDelId;
 
-                var service = new SoftDeleteService(context);
+                var service = new SoftDeleteServices.Concrete.SoftDeleteService(context);
                 service.SetSoftDeleteViaKeys<BookSoftDel>(bookId);
                 service.IsValid.ShouldBeTrue(service.GetAllErrors());
 
@@ -155,14 +154,14 @@ namespace Test.UnitTests
                 var book1 = AddBookWithReviewToDb(context, "test1");
                 var book2 = AddBookWithReviewToDb(context, "test2");
 
-                var service = new SoftDeleteService(context);
+                var service = new SoftDeleteServices.Concrete.SoftDeleteService(context);
                 service.SetSoftDelete(book1);
                 service.IsValid.ShouldBeTrue(service.GetAllErrors());
 
             }
             using (var context = new SoftDelDbContext(options))
             {
-                var service = new SoftDeleteService(context);
+                var service = new SoftDeleteServices.Concrete.SoftDeleteService(context);
 
                 //ATTEMPT
                 var softDelBooks = service.GetSoftDeletedEntries<BookSoftDel>().ToList();

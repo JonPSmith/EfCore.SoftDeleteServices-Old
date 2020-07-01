@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <Folder Include="EfClasses\" />
-    <Folder Include="EfCode\" />
   </ItemGroup>
 
 </Project>

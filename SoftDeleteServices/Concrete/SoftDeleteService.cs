@@ -2,15 +2,13 @@
 // Licensed under MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.ComponentModel.Design;
 using System.Linq;
-using DataLayer.EfClasses;
 using DataLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using ServiceLayer.SoftDeleteServices.Concrete.Internal;
+using SoftDeleteServices.Concrete.Internal;
 using StatusGeneric;
 
-namespace ServiceLayer.SoftDeleteServices.Concrete
+namespace SoftDeleteServices.Concrete
 {
     public class SoftDeleteService : StatusGenericHandler
     {
@@ -23,7 +21,7 @@ namespace ServiceLayer.SoftDeleteServices.Concrete
 
 
         public bool SetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
-            where TEntity : class, ISoftDelete
+            where TEntity : class
         {
             var entity = _context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);
             if (entity == null)
@@ -31,13 +29,16 @@ namespace ServiceLayer.SoftDeleteServices.Concrete
                 AddError("Could not find the entry you ask for.");
                 return false;
             }
-            if (entity.SoftDeleted)
+            if (!(entity is ISoftDelete castToSoftDelete))
+                throw new InvalidOperationException($"The class {entity.GetType().Name} doesn't support simple soft delete.");
+            
+            if (castToSoftDelete.SoftDeleted)
             {
                 AddError("This entry is already soft deleted.");
                 return true;
             }
 
-            SetSoftDelete(entity);
+            SetSoftDelete(castToSoftDelete);
             return true;
         }
 
@@ -50,13 +51,16 @@ namespace ServiceLayer.SoftDeleteServices.Concrete
                 AddError("Could not find the entry you ask for.");
                 return false;
             }
-            if (!entity.SoftDeleted)
+            if (!(entity is ISoftDelete castToSoftDelete))
+                throw new InvalidOperationException($"The class {entity.GetType().Name} doesn't support simple soft delete.");
+
+            if (!castToSoftDelete.SoftDeleted)
             {
-                AddError("Soft delete on this entry has already been set.");
+                AddError("This entry isn't soft deleted.");
                 return true;
             }
 
-            ResetSoftDelete(entity);
+            ResetSoftDelete(castToSoftDelete);
             return true;
         }
 

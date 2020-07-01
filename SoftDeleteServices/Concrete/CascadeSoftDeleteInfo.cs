@@ -3,7 +3,7 @@
 
 using System;
 
-namespace ServiceLayer.SoftDeleteServices.Concrete
+namespace SoftDeleteServices.Concrete
 {
     public class CascadeSoftDeleteInfo
     {
@@ -40,7 +40,7 @@ namespace ServiceLayer.SoftDeleteServices.Concrete
                 case CascadeSoftDelWhatDoing.SoftDelete:
                     return Message("soft deleted");
                 case CascadeSoftDelWhatDoing.ResetSoftDelete:
-                    return Message("un-soft deleted");
+                    return Message("recovered");
                 case CascadeSoftDelWhatDoing.CheckWhatWillDelete:
                 {
                     if (NumFound == 0)

@@ -10,7 +10,7 @@ using DataLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace ServiceLayer.SoftDeleteServices.Concrete.Internal
+namespace SoftDeleteServices.Concrete.Internal
 {
     internal class CascadeWalker
     {

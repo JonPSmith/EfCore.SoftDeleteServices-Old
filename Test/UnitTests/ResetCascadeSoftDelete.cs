@@ -5,7 +5,7 @@ using System.Linq;
 using DataLayer.EfClasses;
 using DataLayer.EfCode;
 using Microsoft.EntityFrameworkCore;
-using ServiceLayer.SoftDeleteServices.Concrete;
+using SoftDeleteServices.Concrete;
 using TestSupport.EfHelpers;
 using Xunit;
 using Xunit.Abstractions;
@@ -13,11 +13,11 @@ using Xunit.Extensions.AssertExtensions;
 
 namespace Test.UnitTests
 {
-    public class Ch11_ResetCascadeSoftDelete
+    public class ResetCascadeSoftDelete
     {
         private ITestOutputHelper _output;
 
-        public Ch11_ResetCascadeSoftDelete(ITestOutputHelper output)
+        public ResetCascadeSoftDelete(ITestOutputHelper output)
         {
             _output = output;
         }
@@ -70,7 +70,7 @@ namespace Test.UnitTests
 
                 //VERIFY
                 info.NumFound.ShouldEqual(7 + 6);
-                info.ToString().ShouldEqual("You have un-soft deleted an entity and its 12 dependents");
+                info.ToString().ShouldEqual("You have recovered an entity and its 12 dependents");
             }
         }
 
