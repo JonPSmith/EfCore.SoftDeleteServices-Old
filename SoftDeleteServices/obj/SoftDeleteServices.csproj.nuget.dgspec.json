@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\SoftDeleteServices\\SoftDeleteServices.csproj": {}
+    "C:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\SoftDeleteServices\\SoftDeleteServices.csproj": {}
   },
   "projects": {
-    "c:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\SoftDeleteServices\\SoftDeleteServices.csproj": {
+    "C:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\DataLayer\\DataLayer.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\SoftDeleteServices\\SoftDeleteServices.csproj",
-        "projectName": "SoftDeleteServices",
-        "projectPath": "c:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\SoftDeleteServices\\SoftDeleteServices.csproj",
+        "projectUniqueName": "C:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\DataLayer\\DataLayer.csproj",
+        "projectName": "DataLayer",
+        "projectPath": "C:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\DataLayer\\DataLayer.csproj",
         "packagesPath": "C:\\Users\\JonPSmith\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\SoftDeleteServices\\obj\\",
+        "outputPath": "C:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\DataLayer\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\JonPSmith\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -37,6 +37,82 @@
       },
       "frameworks": {
         "netstandard2.1": {
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[5.0.0-preview.6.20312.4, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "NETStandard.Library": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.300\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\SoftDeleteServices\\SoftDeleteServices.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\SoftDeleteServices\\SoftDeleteServices.csproj",
+        "projectName": "SoftDeleteServices",
+        "projectPath": "C:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\SoftDeleteServices\\SoftDeleteServices.csproj",
+        "packagesPath": "C:\\Users\\JonPSmith\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\SoftDeleteServices\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\JonPSmith\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netstandard2.1"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netstandard2.1": {
+            "projectReferences": {
+              "C:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\DataLayer\\DataLayer.csproj": {
+                "projectPath": "C:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\DataLayer\\DataLayer.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netstandard2.1": {
+          "dependencies": {
+            "GenericServices.StatusGeneric": {
+              "target": "Package",
+              "version": "[1.1.0, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[5.0.0-preview.6.20312.4, )"
+            },
+            "Microsoft.EntityFrameworkCore.Relational": {
+              "target": "Package",
+              "version": "[5.0.0-preview.6.20312.4, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

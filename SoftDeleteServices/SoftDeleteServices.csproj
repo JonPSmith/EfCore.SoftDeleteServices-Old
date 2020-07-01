@@ -1,7 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GenericServices.StatusGeneric" Version="1.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.0-preview.6.20312.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.0-preview.6.20312.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DataLayer\DataLayer.csproj" />
+  </ItemGroup>
 
 </Project>
