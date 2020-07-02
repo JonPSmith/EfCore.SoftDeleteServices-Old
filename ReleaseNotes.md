@@ -11,6 +11,7 @@ The code is currently a prototype and not ready to be a library.
 * Allow user to provide their own `ISoftDelete` interface (moderate)
 * Allow user to define some message parts (moderate)
 * Handle other query filter parts (hard)
+* Allowing multiple soft delete, e.g. archive & soft delete
 * Needs comments
 * Needs a lot more unit tests
 
@@ -22,10 +23,12 @@ The code is currently a prototype and not ready to be a library.
 * Allow user to define some message parts (moderate)
 * Change `CascadeWalker` to return the loaded relationships so that it works with properties, backing fields and shadow properties (easy)
 * Handle other query filter parts (hard)
+* Allowing multiple soft delete, e.g. archive & soft delete
 * Think about using SQL code to improve performance (very hard)
 
 ### Other things
 
+* LoadEntityExtensions assumes primary keys are in properties
 * Add Auto configuring helpers
 * Show how it can work with multi-tenant
 * Documentation
