@@ -13,11 +13,11 @@ using Xunit.Extensions.AssertExtensions;
 
 namespace Test.UnitTests
 {
-    public class HardDeleteCascadeSoftDelete
+    public class TestHardDeleteCascadeSoftDelete
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
-        public HardDeleteCascadeSoftDelete(ITestOutputHelper output)
+        public TestHardDeleteCascadeSoftDelete(ITestOutputHelper output)
         {
             _output = output;
         }

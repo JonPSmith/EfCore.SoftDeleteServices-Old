@@ -24,6 +24,8 @@ namespace SoftDeleteServices.Concrete
             _context = context;
         }
 
+
+
         public CascadeSoftDeleteInfo SetCascadeSoftDelete<TEntity>(TEntity softDeleteThisEntity, bool readEveryTime = true)
             where TEntity : class, ICascadeSoftDelete
         {
@@ -78,5 +80,15 @@ namespace SoftDeleteServices.Concrete
         }
 
 
+        /// <summary>
+        /// This returns the cascade soft deleted entities of type TEntity that can be reset, i.e. SoftDeleteLevel == 1
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <returns></returns>
+        public IQueryable<TEntity> GetSoftDeletedEntries<TEntity>()
+            where TEntity : class, ICascadeSoftDelete
+        {
+            return _context.Set<TEntity>().IgnoreQueryFilters().Where(x => x.SoftDeleteLevel == 1);
+        }
     }
 }

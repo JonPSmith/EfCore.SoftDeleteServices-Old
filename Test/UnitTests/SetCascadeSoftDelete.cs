@@ -16,12 +16,12 @@ using Xunit.Extensions.AssertExtensions;
 
 namespace Test.UnitTests
 {
-    public class SetCascadeSoftDelete
+    public class TestSetCascadeSoftDelete
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
         private readonly Regex _selectMatchRegex = new Regex(@"SELECT "".""\.""EmployeeSoftCascadeId"",", RegexOptions.None);
 
-        public SetCascadeSoftDelete(ITestOutputHelper output)
+        public TestSetCascadeSoftDelete(ITestOutputHelper output)
         {
             _output = output;
         }
