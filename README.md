@@ -30,7 +30,7 @@ The status the set/reset/hard delete method returns contains:
 - `IsValid` is true if no errors where found.
 - `Errors` List of errors - empty list if no errors.
 - `Result` (int) returns 
-   - *Success*: number of entity classes were visited. 
+   - *Success*: number of entity classes were set/reset/deleted etc. 
    - *Errors*: will be 0.
    - *Not Found*: if `notFoundAllowed` is false then will have a error if the entity wasn't found, Otherwise it will be -1 to signify it couldn't find it (useful for Web APIs).
 - `Message` which provides a user-friendly message saying what has happened, for instance "Successfully soft deleted that entry". If errors then `Message` says "Failed with xx errors".
@@ -53,5 +53,5 @@ See code/documentation for more infromation.
 
 ## Cascade soft delete methods
 
-... still to write
+... still to write. Just look at the code for now as it has good comments
 
