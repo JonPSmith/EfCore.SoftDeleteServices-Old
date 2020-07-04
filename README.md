@@ -26,11 +26,15 @@ Cascade soft delete has two other features to deal with hard deleting cascade so
 - One to provide a "Are you sure..." message to show to the user before they hard delete something
 - One to actually hard delete all the entities had are already soft deleted.
 
-The status the set/reset/hard delete method returns has three parts:
-- `IsValid` is true if no errors where found
-- `Result` (int) returns how many entity classes were updated. Can be -1 if not found and the `notFoundAllowed` is set to true (useful for Web APIs).
-- `Message` which provides a user-friendly message saying what has happened, for instance "Successfully soft deleted that entry". If errors then `Message` says "Failed with xx errors".
+The status the set/reset/hard delete method returns contains:
+- `IsValid` is true if no errors where found.
 - `Errors` List of errors - empty list if no errors.
+- `Result` (int) returns 
+   - *Success*: number of entity classes were visited. 
+   - *Errors*: will be 0.
+   - *Not Found*: if `notFoundAllowed` is false then will have a error if the entity wasn't found, Otherwise it will be -1 to signify it couldn't find it (useful for Web APIs).
+- `Message` which provides a user-friendly message saying what has happened, for instance "Successfully soft deleted that entry". If errors then `Message` says "Failed with xx errors".
+
 
 *See [GenericServices.StatusGeneric](https://github.com/JonPSmith/GenericServices.StatusGeneric) for more on the `IStatusGeneric` used in this project.*
 
