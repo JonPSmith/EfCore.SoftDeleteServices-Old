@@ -16,14 +16,14 @@ namespace SoftDeleteServices.Concrete.Internal
     {
         
         private readonly DbContext _context;
-        private readonly CascadeSoftDelWhatDoing _whatDoing;
+        private readonly CascadeSoftDelService.CascadeSoftDelWhatDoing _whatDoing;
         private readonly bool _readEveryTime;
 
         private readonly HashSet<object> _stopCircularLook = new HashSet<object>();
 
         public int NumFound { get; private set; }
 
-        public CascadeWalker(DbContext context, CascadeSoftDelWhatDoing whatDoing, bool readEveryTime)
+        public CascadeWalker(DbContext context, CascadeSoftDelService.CascadeSoftDelWhatDoing whatDoing, bool readEveryTime)
         {
             _context = context;
             _whatDoing = whatDoing;
@@ -95,23 +95,23 @@ namespace SoftDeleteServices.Concrete.Internal
         {
             switch (_whatDoing)
             {
-                case CascadeSoftDelWhatDoing.SoftDelete:
+                case CascadeSoftDelService.CascadeSoftDelWhatDoing.SoftDelete:
                     if (castToCascadeSoftDelete.SoftDeleteLevel != 0)
                         //If the entity has already been soft deleted , then we don't change it, nor its child relationships
                         return true;
                     castToCascadeSoftDelete.SoftDeleteLevel = cascadeLevel;
                     break;
-                case CascadeSoftDelWhatDoing.ResetSoftDelete:
+                case CascadeSoftDelService.CascadeSoftDelWhatDoing.ResetSoftDelete:
                     if (castToCascadeSoftDelete.SoftDeleteLevel != cascadeLevel)
                         //Don't reset if it was soft deleted value doesn't match -this stops previously deleted sub-groups being updeleted
                         return true;
                     castToCascadeSoftDelete.SoftDeleteLevel = (byte)0;
                     break;
-                case CascadeSoftDelWhatDoing.CheckWhatWillDelete:
+                case CascadeSoftDelService.CascadeSoftDelWhatDoing.CheckWhatWillDelete:
                     if (castToCascadeSoftDelete.SoftDeleteLevel == 0)
                         return true;
                     break;
-                case CascadeSoftDelWhatDoing.HardDeleteSoftDeleted:
+                case CascadeSoftDelService.CascadeSoftDelWhatDoing.HardDeleteSoftDeleted:
                     if (castToCascadeSoftDelete.SoftDeleteLevel == 0)
                         return true;
                     _context.Remove(castToCascadeSoftDelete);
@@ -127,7 +127,7 @@ namespace SoftDeleteServices.Concrete.Internal
 
         private void LoadNavigationCollection(object principalInstance, INavigation navigation)
         {
-            if (_whatDoing == CascadeSoftDelWhatDoing.SoftDelete)
+            if (_whatDoing == CascadeSoftDelService.CascadeSoftDelWhatDoing.SoftDelete)
                 //For setting we can simple load it, as we don't want to whatDoing anything that is already whatDoing
                 _context.Entry(principalInstance).Collection(navigation.PropertyInfo.Name).Load();
             else
@@ -154,7 +154,7 @@ namespace SoftDeleteServices.Concrete.Internal
 
         private void LoadNavigationSingleton(object principalInstance, INavigation navigation)
         {
-            if (_whatDoing == CascadeSoftDelWhatDoing.SoftDelete)
+            if (_whatDoing == CascadeSoftDelService.CascadeSoftDelWhatDoing.SoftDelete)
                 //For setting we can simple load it, as we don't want to whatDoing anything that is already whatDoing
                 _context.Entry(principalInstance).Reference(navigation.PropertyInfo.Name).Load();
             else

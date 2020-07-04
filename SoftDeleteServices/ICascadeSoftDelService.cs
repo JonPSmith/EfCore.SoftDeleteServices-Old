@@ -7,11 +7,47 @@ using StatusGeneric;
 
 namespace SoftDeleteServices
 {
-    /// <summary>
-    /// This interface contains the methods in the CascadeSoftDelService
-    /// </summary>
     public interface ICascadeSoftDelService
     {
+        /// <summary>
+        /// This finds the entity using its primary key(s) and then cascade soft deletes the entity any dependent entities with the correct delete behaviour
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="keyValues">primary key values</param>
+        /// <returns>Returns status. If not errors then Result has the number of entities that have been soft deleted. Is -1 if Not Found and notFoundAllowed is true</returns>
+        IStatusGeneric<int> SetCascadeSoftDeleteViaKeys<TEntity>(params object[] keyValues)
+            where TEntity : class, ICascadeSoftDelete;
+
+        /// <summary>
+        /// This finds the entity using its primary key(s) and then resets the soft delete flag so it is now visible
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="keyValues">primary key values</param>
+        /// <returns>Returns status. If not errors then Result has the number of entities that have been reset. Is -1 if Not Found and notFoundAllowed is true</returns>
+        IStatusGeneric<int> ResetCascadeSoftDeleteViaKeys<TEntity>(params object[] keyValues)
+            where TEntity : class, ICascadeSoftDelete;
+
+        /// <summary>
+        /// This finds the entity using its primary key(s) and counts this entity and any dependent entities
+        /// that are already been cascade soft deleted and are valid to be hard deleted.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="keyValues">primary key values</param>
+        /// <returns>Returns status. If not errors then Message contains a message to warn what will be deleted if the HardDelete... method is called.
+        /// Result is -1 if Not Found and notFoundAllowed is true</returns>
+        IStatusGeneric<int> CheckCascadeSoftDeleteViaKeys<TEntity>(params object[] keyValues)
+            where TEntity : class, ICascadeSoftDelete;
+
+        /// <summary>
+        /// This finds the entity using its primary key(s) and hard deletes this entity and any dependent entities
+        /// that are already been cascade soft deleted.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="keyValues">primary key values</param>
+        /// <returns>Returns status. If not errors then Result has the number of entities that have been hard deleted. Is -1 if Not Found and notFoundAllowed is true</returns>
+        IStatusGeneric<int> HardDeleteSoftDeletedEntriesViaKeys<TEntity>(params object[] keyValues)
+            where TEntity : class, ICascadeSoftDelete;
+
         /// <summary>
         /// This with cascade soft delete this entity and any dependent entities with the correct delete behaviour
         /// </summary>

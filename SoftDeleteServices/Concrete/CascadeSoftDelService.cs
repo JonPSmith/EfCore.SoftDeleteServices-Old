@@ -10,20 +10,74 @@ using StatusGeneric;
 
 namespace SoftDeleteServices.Concrete
 {
-    public enum CascadeSoftDelWhatDoing { SoftDelete, ResetSoftDelete, CheckWhatWillDelete, HardDeleteSoftDeleted }
 
     public class CascadeSoftDelService : ICascadeSoftDelService
     {
-        private readonly DbContext _context;
+        public enum CascadeSoftDelWhatDoing { SoftDelete, ResetSoftDelete, CheckWhatWillDelete, HardDeleteSoftDeleted }
 
+        private readonly DbContext _context;
+        private readonly bool _notFoundAllowed;
 
         /// <summary>
         /// This provides a equivalent to a SQL cascade delete, but using a soft delete approach.
         /// </summary>
         /// <param name="context"></param>
-        public CascadeSoftDelService(DbContext context)
+        /// <param name="notFoundAllowed">Defaults to not found being an error. Set to true if not found isn't an error</param>
+        public CascadeSoftDelService(DbContext context, bool notFoundAllowed = false)
         {
             _context = context;
+            _notFoundAllowed = notFoundAllowed;
+        }
+
+        /// <summary>
+        /// This finds the entity using its primary key(s) and then cascade soft deletes the entity any dependent entities with the correct delete behaviour
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="keyValues">primary key values</param>
+        /// <returns>Returns status. If not errors then Result has the number of entities that have been soft deleted. Is -1 if Not Found and notFoundAllowed is true</returns>
+        public IStatusGeneric<int> SetCascadeSoftDeleteViaKeys<TEntity>(params object[] keyValues)
+            where TEntity : class, ICascadeSoftDelete
+        {
+            return _context.CheckExecuteCascadeSoftDelete<TEntity>(_notFoundAllowed, x=>  SetCascadeSoftDelete(x), keyValues);
+        }
+
+        /// <summary>
+        /// This finds the entity using its primary key(s) and then resets the soft delete flag so it is now visible
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="keyValues">primary key values</param>
+        /// <returns>Returns status. If not errors then Result has the number of entities that have been reset. Is -1 if Not Found and notFoundAllowed is true</returns>
+        public IStatusGeneric<int> ResetCascadeSoftDeleteViaKeys<TEntity>(params object[] keyValues)
+            where TEntity : class, ICascadeSoftDelete
+        {
+            return _context.CheckExecuteCascadeSoftDelete<TEntity>(_notFoundAllowed, ResetCascadeSoftDelete, keyValues);
+        }
+
+        /// <summary>
+        /// This finds the entity using its primary key(s) and counts this entity and any dependent entities
+        /// that are already been cascade soft deleted and are valid to be hard deleted.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="keyValues">primary key values</param>
+        /// <returns>Returns status. If not errors then Message contains a message to warn what will be deleted if the HardDelete... method is called.
+        /// Result is -1 if Not Found and notFoundAllowed is true</returns>
+        public IStatusGeneric<int> CheckCascadeSoftDeleteViaKeys<TEntity>(params object[] keyValues)
+            where TEntity : class, ICascadeSoftDelete
+        {
+            return _context.CheckExecuteCascadeSoftDelete<TEntity>(_notFoundAllowed, CheckCascadeSoftDelete, keyValues);
+        }
+
+        /// <summary>
+        /// This finds the entity using its primary key(s) and hard deletes this entity and any dependent entities
+        /// that are already been cascade soft deleted.
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="keyValues">primary key values</param>
+        /// <returns>Returns status. If not errors then Result has the number of entities that have been hard deleted. Is -1 if Not Found and notFoundAllowed is true</returns>
+        public IStatusGeneric<int> HardDeleteSoftDeletedEntriesViaKeys<TEntity>(params object[] keyValues)
+            where TEntity : class, ICascadeSoftDelete
+        {
+            return _context.CheckExecuteCascadeSoftDelete<TEntity>(_notFoundAllowed, HardDeleteSoftDeletedEntries, keyValues);
         }
 
         /// <summary>

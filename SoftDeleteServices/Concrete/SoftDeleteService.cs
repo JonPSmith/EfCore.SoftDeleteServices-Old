@@ -35,7 +35,7 @@ namespace SoftDeleteServices.Concrete
         public IStatusGeneric<TEntity> SetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
             where TEntity : class, ISoftDelete
         {
-            return CheckExecuteSoftDelete<TEntity>(SetSoftDelete, keyValues);
+            return _context.CheckExecuteSoftDelete<TEntity>(_notFoundAllowed, SetSoftDelete, keyValues);
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace SoftDeleteServices.Concrete
         public IStatusGeneric<TEntity> ResetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
             where TEntity : class, ISoftDelete
         {
-            return CheckExecuteSoftDelete<TEntity>(ResetSoftDelete, keyValues);
+            return _context.CheckExecuteSoftDelete<TEntity>(_notFoundAllowed, ResetSoftDelete, keyValues);
         }
 
 
@@ -108,25 +108,6 @@ namespace SoftDeleteServices.Concrete
             return _context.Set<TEntity>().IgnoreQueryFilters().Where(x => x.SoftDeleted);
         }
 
-        //---------------------------------------------------------
-        //private methods
 
-        private IStatusGeneric<TEntity> CheckExecuteSoftDelete<TEntity>(Func<ISoftDelete, IStatusGeneric> softDeleteAction, params object[] keyValues)
-            where TEntity : class, ISoftDelete
-        {
-            var status = new StatusGenericHandler<TEntity>();
-            var entity = _context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);
-            if (entity == null)
-            {
-                if (!_notFoundAllowed)
-                    status.AddError("Could not find the entry you ask for.");
-                return status;
-            }
-
-            status.CombineStatuses(softDeleteAction(entity));
-            status.SetResult(entity);
-
-            return status;
-        }
     }
 }

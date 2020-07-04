@@ -6,12 +6,54 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using DataLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using StatusGeneric;
 
 namespace SoftDeleteServices.Concrete.Internal
 {
     internal static class LoadEntityExtensions
     {
+        public static IStatusGeneric<TEntity> CheckExecuteSoftDelete<TEntity>(
+            this DbContext context, bool notFoundAllowed,
+            Func<ISoftDelete, IStatusGeneric> softDeleteAction, params object[] keyValues)
+            where TEntity : class, ISoftDelete
+        {
+            var status = new StatusGenericHandler<TEntity>();
+            var entity = context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);
+            if (entity == null)
+            {
+                if (!notFoundAllowed)
+                    status.AddError("Could not find the entry you ask for.");
+                return status;
+            }
+
+            status.CombineStatuses(softDeleteAction(entity));
+            status.SetResult(entity);
+
+            return status;
+        }
+
+        public static IStatusGeneric<int> CheckExecuteCascadeSoftDelete<TEntity>(
+            this DbContext context, bool notFoundAllowed,
+            Func<ICascadeSoftDelete, IStatusGeneric<int>> softDeleteAction, params object[] keyValues)
+            where TEntity : class, ICascadeSoftDelete
+        {
+            var status = new StatusGenericHandler<int>();
+            var entity = context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);
+            if (entity == null)
+            {
+                if (!notFoundAllowed)
+                    status.AddError("Could not find the entry you ask for.");
+                else
+                    status.SetResult(-1); //if Not Found allowed we return -1 to say we didn't find the entity
+
+                return status;
+            }
+
+            return softDeleteAction(entity);
+        }
+
         public static TEntity LoadEntityViaPrimaryKeys<TEntity>(this DbContext context, bool withIgnoreFilter, params object[] keyValues)
             where TEntity : class
         {
