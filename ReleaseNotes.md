@@ -4,6 +4,8 @@
 
 The code is currently a prototype and not ready to be a library.
 
+However it is clean enough that you could cop the code and use in your application. NOTE: the interface most likely will change before it becomes a library
+
 ## Things needed to turn it into a library
 
 ### Simple soft delete

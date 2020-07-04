@@ -5,7 +5,7 @@ This repo contains prototype code to handle
 - **Simple soft delete**: where a single entity class can be hidden from normal queries and restore back if required
 - **Cascade soft delete**: where when an entity is soft deleted, then its dependent entity classes are also soft deleted.
 
-The code works, but there is a lot of work to turn this into a general NuGet library - see ReleasNotes.md file for what needs to be done.
+The code works, but there is a lot of work to turn this into a general NuGet library - see [ReleaseNotes.md](https://github.com/JonPSmith/EfCore.SoftDeleteServices/blob/master/ReleaseNotes.md) file for what needs to be done.
 
 ## Terms
 
