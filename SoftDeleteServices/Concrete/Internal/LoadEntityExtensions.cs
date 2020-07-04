@@ -14,24 +14,22 @@ namespace SoftDeleteServices.Concrete.Internal
 {
     internal static class LoadEntityExtensions
     {
-        public static IStatusGeneric<TEntity> CheckExecuteSoftDelete<TEntity>(
+        public static IStatusGeneric<int> CheckExecuteSoftDelete<TEntity>(
             this DbContext context, bool notFoundAllowed,
-            Func<ISoftDelete, IStatusGeneric> softDeleteAction, params object[] keyValues)
+            Func<ISoftDelete, IStatusGeneric<int>> softDeleteAction, params object[] keyValues)
             where TEntity : class, ISoftDelete
         {
-            var status = new StatusGenericHandler<TEntity>();
+            var status = new StatusGenericHandler<int>();
             var entity = context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);
             if (entity == null)
             {
+                status.SetResult(-1); //if Not Found allowed we return -1 to say we didn't find the entity
                 if (!notFoundAllowed)
                     status.AddError("Could not find the entry you ask for.");
                 return status;
             }
 
-            status.CombineStatuses(softDeleteAction(entity));
-            status.SetResult(entity);
-
-            return status;
+            return softDeleteAction(entity);
         }
 
         public static IStatusGeneric<int> CheckExecuteCascadeSoftDelete<TEntity>(
@@ -43,18 +41,16 @@ namespace SoftDeleteServices.Concrete.Internal
             var entity = context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);
             if (entity == null)
             {
+                status.SetResult(-1); //if Not Found allowed we return -1 to say we didn't find the entity
                 if (!notFoundAllowed)
                     status.AddError("Could not find the entry you ask for.");
-                else
-                    status.SetResult(-1); //if Not Found allowed we return -1 to say we didn't find the entity
-
                 return status;
             }
 
             return softDeleteAction(entity);
         }
 
-        public static TEntity LoadEntityViaPrimaryKeys<TEntity>(this DbContext context, bool withIgnoreFilter, params object[] keyValues)
+        private static TEntity LoadEntityViaPrimaryKeys<TEntity>(this DbContext context, bool withIgnoreFilter, params object[] keyValues)
             where TEntity : class
         {
             var entityType = context.Model.FindEntityType(typeof(TEntity));

@@ -49,12 +49,14 @@ namespace Test.UnitTests
                 var service = new SoftDeleteServices.Concrete.SoftDeleteService(context);
 
                 //ATTEMPT
-                service.SetSoftDelete(book);
+                var status = service.SetSoftDelete(book);
 
+                //VERIFY
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(1);
             }
             using (var context = new SoftDelDbContext(options))
             {
-                //VERIFY
                 context.Books.Count().ShouldEqual(0);
                 context.Books.IgnoreQueryFilters().Count().ShouldEqual(1);
             }
@@ -77,7 +79,7 @@ namespace Test.UnitTests
 
                 //VERIFY
                 status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                status.Result.ShouldNotBeNull();
+                status.Result.ShouldEqual(1);
             }
             using (var context = new SoftDelDbContext(options))
             {
@@ -103,11 +105,12 @@ namespace Test.UnitTests
                 //VERIFY
                 status.IsValid.ShouldBeFalse();
                 status.GetAllErrors().ShouldEqual("Could not find the entry you ask for.");
+                status.Result.ShouldEqual(0);
             }
         }
 
         [Fact]
-        public void TestSoftDeleteServiceSetSoftDeleteViaKeysNotFoundReturnsNull()
+        public void TestSoftDeleteServiceSetSoftDeleteViaKeysNotFoundReturnsMinus1()
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
@@ -122,7 +125,7 @@ namespace Test.UnitTests
 
                 //VERIFY
                 status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                status.Result.ShouldBeNull();
+                status.Result.ShouldEqual(-1);
             }
         }
 
@@ -144,6 +147,7 @@ namespace Test.UnitTests
 
                 //VERIFY
                 status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(1);
             }
             using (var context = new SoftDelDbContext(options))
             {
@@ -172,6 +176,7 @@ namespace Test.UnitTests
 
                 //VERIFY
                 status2.IsValid.ShouldBeTrue(status2.GetAllErrors());
+                status2.Result.ShouldEqual(1);
             }
             using (var context = new SoftDelDbContext(options))
             {

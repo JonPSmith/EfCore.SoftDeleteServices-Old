@@ -10,7 +10,7 @@ using StatusGeneric;
 
 namespace SoftDeleteServices.Concrete
 {
-    public class SoftDeleteService : ISoftDeleteService
+    public class SoftDeleteService
     {
         private readonly DbContext _context;
         private readonly bool _notFoundAllowed;
@@ -31,8 +31,8 @@ namespace SoftDeleteServices.Concrete
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="keyValues">primary key values</param>
-        /// <returns>Returns status with Result holding the soft deleted entity class - Result can be null if Not Found and notFoundAllowed is true</returns>
-        public IStatusGeneric<TEntity> SetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
+        /// <returns>Returns status. If not errors then Result return 1 to say it worked. Is -1 if Not Found and notFoundAllowed is true</returns>
+        public IStatusGeneric<int> SetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
             where TEntity : class, ISoftDelete
         {
             return _context.CheckExecuteSoftDelete<TEntity>(_notFoundAllowed, SetSoftDelete, keyValues);
@@ -43,8 +43,8 @@ namespace SoftDeleteServices.Concrete
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="keyValues">primary key values</param>
-        /// <returns>Returns status with Result holding the soft deleted entity class - Result can be null if Not Found and notFoundAllowed is true</returns>
-        public IStatusGeneric<TEntity> ResetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
+        /// <returns>Returns status. If not errors then Result return 1 to say it worked. Is -1 if Not Found and notFoundAllowed is true</returns>
+        public IStatusGeneric<int> ResetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
             where TEntity : class, ISoftDelete
         {
             return _context.CheckExecuteSoftDelete<TEntity>(_notFoundAllowed, ResetSoftDelete, keyValues);
@@ -56,8 +56,8 @@ namespace SoftDeleteServices.Concrete
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="softDeleteThisEntity">Mustn't be null</param>
-        /// <returns>Status - returns an error if the entity is already soft deleted</returns>
-        public IStatusGeneric SetSoftDelete<TEntity>(TEntity softDeleteThisEntity)
+        /// <returns>Returns status. If not errors then Result return 1 to say it worked. Is -1 if Not Found and notFoundAllowed is true</returns>
+        public IStatusGeneric<int> SetSoftDelete<TEntity>(TEntity softDeleteThisEntity)
             where TEntity : class, ISoftDelete
         {
             if (softDeleteThisEntity == null) throw new ArgumentNullException(nameof(softDeleteThisEntity));
@@ -68,12 +68,14 @@ namespace SoftDeleteServices.Concrete
                 throw new InvalidOperationException("You cannot soft delete a one-to-one relationship. " +
                                                     "It causes problems if you try to create a new version.");
 
-            var status = new StatusGenericHandler();
+            var status = new StatusGenericHandler<int>();
             if (softDeleteThisEntity.SoftDeleted)
                 return status.AddError("This entry is already soft deleted.");
 
             softDeleteThisEntity.SoftDeleted = true;
             _context.SaveChanges();
+
+            status.SetResult(1);        //one changed
             return status;
         }
 
@@ -82,18 +84,20 @@ namespace SoftDeleteServices.Concrete
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="resetSoftDeleteThisEntity">Mustn't be null</param>
-        /// <returns>Status - returns an error if the entity's soft deleted flag isn't set</returns>
-        public IStatusGeneric ResetSoftDelete<TEntity>(TEntity resetSoftDeleteThisEntity)
+        /// <returns>Returns status. If not errors then Result return 1 to say it worked. Is -1 if Not Found and notFoundAllowed is true</returns>
+        public IStatusGeneric<int> ResetSoftDelete<TEntity>(TEntity resetSoftDeleteThisEntity)
             where TEntity : class, ISoftDelete
         {
             if (resetSoftDeleteThisEntity == null) throw new ArgumentNullException(nameof(resetSoftDeleteThisEntity));
 
-            var status = new StatusGenericHandler();
+            var status = new StatusGenericHandler<int>();
             if (!resetSoftDeleteThisEntity.SoftDeleted)
                 return status.AddError("This entry isn't soft deleted.");
 
             resetSoftDeleteThisEntity.SoftDeleted = false;
             _context.SaveChanges();
+
+            status.SetResult(1);        //one changed
             return status;
         }
 
