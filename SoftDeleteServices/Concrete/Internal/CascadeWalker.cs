@@ -21,15 +21,13 @@ namespace SoftDeleteServices.Concrete.Internal
 
         private readonly HashSet<object> _stopCircularLook = new HashSet<object>();
 
-        public CascadeSoftDeleteInfo Info { get; private set; }
+        public int NumFound { get; private set; }
 
         public CascadeWalker(DbContext context, CascadeSoftDelWhatDoing whatDoing, bool readEveryTime)
         {
             _context = context;
             _whatDoing = whatDoing;
             _readEveryTime = readEveryTime;
-
-            Info = new CascadeSoftDeleteInfo(_whatDoing, null);
         }
 
         public void WalkEntitiesSoftDelete(object principalInstance, byte cascadeLevel)
@@ -122,7 +120,7 @@ namespace SoftDeleteServices.Concrete.Internal
                     throw new ArgumentOutOfRangeException();
             }
 
-            Info.NumFound++;
+            NumFound++;
 
             return false;
         }

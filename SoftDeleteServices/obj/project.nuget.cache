@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "iSGof9VEQS6np//26Nrg4oO5eNmGbKXc9HZmvauN8EOcnQXPPCkV32Njb3hWGjzMIgCibEbDXBYuNHJ/aG39aA==",
+  "dgSpecHash": "8cCsaitX7iRUVErddip16y7Z5wzeD7eKawla3yM9OTbTWJcBZp2B64ZhiAzDCoODcrjWOavH6H2GKC1d7Ct4JQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\SoftDeleteServices\\SoftDeleteServices.csproj",
   "expectedPackageFiles": [

@@ -36,16 +36,16 @@ namespace Test.UnitTests
                 var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
 
                 var service = new CascadeSoftDelService(context);
-                var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).NumFound;
+                var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
                 numSoftDeleted.ShouldEqual(7 + 6);
                 EmployeeSoftCascade.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
 
                 //ATTEMPT
-                var info = service.CheckCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"));
+                var status = service.CheckCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"));
 
                 //VERIFY
-                info.NumFound.ShouldEqual(7 + 6);
-                info.ToString().ShouldEqual("Are you sure you want to hard delete this entity and its 12 dependents");
+                status.Result.ShouldEqual(7 + 6);
+                status.Message.ShouldEqual("Are you sure you want to hard delete this entity and its 12 dependents");
             }
         }
 
@@ -62,11 +62,12 @@ namespace Test.UnitTests
                 var service = new CascadeSoftDelService(context);
 
                 //ATTEMPT
-                var info = service.CheckCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "ProjectManager1"));
+                var status = service.CheckCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "ProjectManager1"));
 
                 //VERIFY
-                info.NumFound.ShouldEqual(0);
-                info.ToString().ShouldEqual("No entries will be hard deleted");
+                status.IsValid.ShouldBeFalse();
+                status.Result.ShouldEqual(0);
+                status.GetAllErrors().ShouldEqual("This entry isn't soft deleted");
             }
         }
 
@@ -84,16 +85,17 @@ namespace Test.UnitTests
                 var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
 
                 var service = new CascadeSoftDelService(context);
-                var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).NumFound;
+                var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
                 numSoftDeleted.ShouldEqual(7 + 6);
                 EmployeeSoftCascade.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
 
                 //ATTEMPT
-                var info = service.HardDeleteSoftDeletedEntries(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"));
+                var status = service.HardDeleteSoftDeletedEntries(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"));
 
                 //VERIFY
-                info.NumFound.ShouldEqual(7 + 6);
-                info.ToString().ShouldEqual("You have hard deleted an entity and its 12 dependents");
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(7 + 6);
+                status.Message.ShouldEqual("You have hard deleted an entity and its 12 dependents");
                 context.Employees.IgnoreQueryFilters().Count().ShouldEqual(4);
             }
         }
@@ -111,11 +113,12 @@ namespace Test.UnitTests
                 var service = new CascadeSoftDelService(context);
 
                 //ATTEMPT
-                var info = service.HardDeleteSoftDeletedEntries(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "ProjectManager1"));
+                var status = service.HardDeleteSoftDeletedEntries(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "ProjectManager1"));
 
                 //VERIFY
-                info.NumFound.ShouldEqual(0);
-                info.ToString().ShouldEqual("No entries have been hard deleted");
+                status.IsValid.ShouldBeFalse();
+                status.Result.ShouldEqual(0);
+                status.GetAllErrors().ShouldEqual("This entry isn't soft deleted");
             }
         }
 

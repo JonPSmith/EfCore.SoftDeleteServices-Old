@@ -36,15 +36,16 @@ namespace Test.UnitTests
                 var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
 
                 var service = new CascadeSoftDelService(context);
-                var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).NumFound;
+                var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
                 numSoftDeleted.ShouldEqual(7 + 6);
                 EmployeeSoftCascade.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
 
                 //ATTEMPT
-                var numUnSoftDeleted = service.ResetCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO")).NumFound;
+                var status = service.ResetCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"));
 
                 //VERIFY
-                numUnSoftDeleted.ShouldEqual(7 + 6);
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(7 + 6);
                 context.Employees.Count().ShouldEqual(11);
                 context.Contracts.Count().ShouldEqual(9);
             }
@@ -61,16 +62,17 @@ namespace Test.UnitTests
                 var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
 
                 var service = new CascadeSoftDelService(context);
-                var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).NumFound;
+                var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
                 numSoftDeleted.ShouldEqual(7 + 6);
                 EmployeeSoftCascade.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
 
                 //ATTEMPT
-                var info = service.ResetCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"));
+                var status = service.ResetCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"));
 
                 //VERIFY
-                info.NumFound.ShouldEqual(7 + 6);
-                info.ToString().ShouldEqual("You have recovered an entity and its 12 dependents");
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(7 + 6);
+                status.Message.ShouldEqual("You have recovered an entity and its 12 dependents");
             }
         }
 
@@ -85,16 +87,18 @@ namespace Test.UnitTests
                 var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
 
                 var service = new CascadeSoftDelService(context);
-                var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).NumFound;
+                var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
                 numSoftDeleted.ShouldEqual(7 + 6);
                 EmployeeSoftCascade.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
 
                 //ATTEMPT
-                var numUnSoftDeleted = service.ResetCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "ProjectManager1")).NumFound;
+                var status = service.ResetCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "ProjectManager1"));
 
                 //VERIFY
                 EmployeeSoftCascade.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
-                numUnSoftDeleted.ShouldEqual(0);
+                status.IsValid.ShouldBeFalse();
+                status.GetAllErrors().ShouldEqual("This entry was soft deleted 1 level above here");
+                status.Result.ShouldEqual(0);
             }
         }
 
@@ -109,18 +113,19 @@ namespace Test.UnitTests
                 var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
 
                 var service = new CascadeSoftDelService(context);
-                var numInnerSoftDelete = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "ProjectManager1")).NumFound;
+                var numInnerSoftDelete = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "ProjectManager1")).Result;
                 numInnerSoftDelete.ShouldEqual(3 + 3);
-                var numOuterSoftDelete = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).NumFound;
+                var numOuterSoftDelete = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
                 numOuterSoftDelete.ShouldEqual(4 + 3);
                 EmployeeSoftCascade.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
 
                 //ATTEMPT
-                var numUnSoftDeleted = service.ResetCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO")).NumFound;
+                var status = service.ResetCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"));
 
                 //VERIFY
                 EmployeeSoftCascade.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
-                numUnSoftDeleted.ShouldEqual(4 + 3);
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(4 + 3);
                 var cto = context.Employees.Include(x => x.WorksFromMe).Single(x => x.Name == "CTO");
                 cto.WorksFromMe.Single(x => x.SoftDeleteLevel == 0).Name.ShouldEqual("ProjectManager2");
             }
@@ -128,7 +133,6 @@ namespace Test.UnitTests
 
         //-------------------------------------------------------------
         //disconnected state
-
 
         [Fact]
         public void TestDisconnectedResetCascadeSoftDeleteEmployeeSoftDelOk()
@@ -141,7 +145,7 @@ namespace Test.UnitTests
                 var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
 
                 var service = new CascadeSoftDelService(context);
-                var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).NumFound;
+                var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
                 numSoftDeleted.ShouldEqual(7+6);
             }
 
@@ -150,10 +154,11 @@ namespace Test.UnitTests
                 var service = new CascadeSoftDelService(context);
 
                 //ATTEMPT
-                var numUnSoftDeleted = service.ResetCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO")).NumFound;
+                var status = service.ResetCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"));
 
                 //VERIFY
-                numUnSoftDeleted.ShouldEqual(7 + 6);
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(7 + 6);
                 context.Employees.Count().ShouldEqual(11);
                 context.Contracts.Count().ShouldEqual(9);
             }
