@@ -30,6 +30,9 @@ The status the set/reset/hard delete method returns has three parts:
 - `IsValid` is true if no errors where found
 - `Result` (int) returns how many entity classes were updated. Can be -1 if not found and the `notFoundAllowed` is set to true (useful for Web APIs).
 - `Message` which provides a user-friendly message saying what has happened, for instance "Successfully soft deleted that entry". If errors then `Message` says "Failed with xx errors".
+- `Errors` List of errors - empty list if no errors.
+
+*See [GenericServices.StatusGeneric](https://github.com/JonPSmith/GenericServices.StatusGeneric) for more on the `IStatusGeneric` used in this project.*
 
 ## Simple soft delete methods
 
