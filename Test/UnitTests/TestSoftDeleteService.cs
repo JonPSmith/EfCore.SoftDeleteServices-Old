@@ -110,7 +110,7 @@ namespace Test.UnitTests
         }
 
         [Fact]
-        public void TestSoftDeleteServiceSetSoftDeleteViaKeysNotFoundReturnsMinus1()
+        public void TestSoftDeleteServiceSetSoftDeleteViaKeysNotFoundReturnsZero()
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
@@ -125,7 +125,7 @@ namespace Test.UnitTests
 
                 //VERIFY
                 status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                status.Result.ShouldEqual(-1);
+                status.Result.ShouldEqual(0);
             }
         }
 

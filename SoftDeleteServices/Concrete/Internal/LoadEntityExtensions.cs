@@ -23,7 +23,6 @@ namespace SoftDeleteServices.Concrete.Internal
             var entity = context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);
             if (entity == null)
             {
-                status.SetResult(-1); //if Not Found allowed we return -1 to say we didn't find the entity
                 if (!notFoundAllowed)
                     status.AddError("Could not find the entry you ask for.");
                 return status;
@@ -41,7 +40,6 @@ namespace SoftDeleteServices.Concrete.Internal
             var entity = context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);
             if (entity == null)
             {
-                status.SetResult(-1); //if Not Found allowed we return -1 to say we didn't find the entity
                 if (!notFoundAllowed)
                     status.AddError("Could not find the entry you ask for.");
                 return status;

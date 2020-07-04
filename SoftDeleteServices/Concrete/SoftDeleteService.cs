@@ -31,7 +31,7 @@ namespace SoftDeleteServices.Concrete
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="keyValues">primary key values</param>
-        /// <returns>Returns status. If not errors then Result return 1 to say it worked. Is -1 if Not Found and notFoundAllowed is true</returns>
+        /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error of Not Found and notFoundAllowed is true</returns>
         public IStatusGeneric<int> SetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
             where TEntity : class, ISoftDelete
         {
@@ -43,20 +43,19 @@ namespace SoftDeleteServices.Concrete
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="keyValues">primary key values</param>
-        /// <returns>Returns status. If not errors then Result return 1 to say it worked. Is -1 if Not Found and notFoundAllowed is true</returns>
+        /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error of Not Found and notFoundAllowed is true</returns>
         public IStatusGeneric<int> ResetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
             where TEntity : class, ISoftDelete
         {
             return _context.CheckExecuteSoftDelete<TEntity>(_notFoundAllowed, ResetSoftDelete, keyValues);
         }
 
-
         /// <summary>
         /// This soft deletes the entity
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="softDeleteThisEntity">Mustn't be null</param>
-        /// <returns>Returns status. If not errors then Result return 1 to say it worked. Is -1 if Not Found and notFoundAllowed is true</returns>
+        /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error</returns>
         public IStatusGeneric<int> SetSoftDelete<TEntity>(TEntity softDeleteThisEntity)
             where TEntity : class, ISoftDelete
         {
@@ -85,7 +84,7 @@ namespace SoftDeleteServices.Concrete
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="resetSoftDeleteThisEntity">Mustn't be null</param>
-        /// <returns>Returns status. If not errors then Result return 1 to say it worked. Is -1 if Not Found and notFoundAllowed is true</returns>
+        /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if errors</returns>
         public IStatusGeneric<int> ResetSoftDelete<TEntity>(TEntity resetSoftDeleteThisEntity)
             where TEntity : class, ISoftDelete
         {

@@ -34,7 +34,7 @@ namespace SoftDeleteServices.Concrete
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="keyValues">primary key values</param>
-        /// <returns>Returns status. If not errors then Result has the number of entities that have been soft deleted. Is -1 if Not Found and notFoundAllowed is true</returns>
+        /// <returns>Returns status. If not errors then Result has the number of entities that have been soft deleted. Zero if error of Not Found and notFoundAllowed is true</returns>
         public IStatusGeneric<int> SetCascadeSoftDeleteViaKeys<TEntity>(params object[] keyValues)
             where TEntity : class, ICascadeSoftDelete
         {
@@ -46,7 +46,7 @@ namespace SoftDeleteServices.Concrete
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="keyValues">primary key values</param>
-        /// <returns>Returns status. If not errors then Result has the number of entities that have been reset. Is -1 if Not Found and notFoundAllowed is true</returns>
+        /// <returns>Returns status. If not errors then Result has the number of entities that have been reset. Zero if error of Not Found and notFoundAllowed is true</returns>
         public IStatusGeneric<int> ResetCascadeSoftDeleteViaKeys<TEntity>(params object[] keyValues)
             where TEntity : class, ICascadeSoftDelete
         {
@@ -60,7 +60,7 @@ namespace SoftDeleteServices.Concrete
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="keyValues">primary key values</param>
         /// <returns>Returns status. If not errors then Message contains a message to warn what will be deleted if the HardDelete... method is called.
-        /// Result is -1 if Not Found and notFoundAllowed is true</returns>
+        /// Zero if error of Not Found and notFoundAllowed is true</returns>
         public IStatusGeneric<int> CheckCascadeSoftDeleteViaKeys<TEntity>(params object[] keyValues)
             where TEntity : class, ICascadeSoftDelete
         {
@@ -73,7 +73,7 @@ namespace SoftDeleteServices.Concrete
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="keyValues">primary key values</param>
-        /// <returns>Returns status. If not errors then Result has the number of entities that have been hard deleted. Is -1 if Not Found and notFoundAllowed is true</returns>
+        /// <returns>Returns status. If not errors then Result has the number of entities that have been hard deleted. Zero if error of Not Found and notFoundAllowed is true</returns>
         public IStatusGeneric<int> HardDeleteSoftDeletedEntriesViaKeys<TEntity>(params object[] keyValues)
             where TEntity : class, ICascadeSoftDelete
         {
