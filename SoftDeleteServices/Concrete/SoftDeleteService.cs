@@ -10,7 +10,7 @@ using StatusGeneric;
 
 namespace SoftDeleteServices.Concrete
 {
-    public class SoftDeleteService
+    public class SoftDeleteService : ISoftDeleteService
     {
         private readonly DbContext _context;
         private readonly bool _notFoundAllowed;
@@ -75,12 +75,13 @@ namespace SoftDeleteServices.Concrete
             softDeleteThisEntity.SoftDeleted = true;
             _context.SaveChanges();
 
+            status.Message = "Successfully soft deleted this entry";
             status.SetResult(1);        //one changed
             return status;
         }
 
         /// <summary>
-        /// This resets soft delete flag so that entity is now visible
+        /// This resets soft delete flag is cleared so that entity is now visible
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="resetSoftDeleteThisEntity">Mustn't be null</param>
@@ -97,6 +98,7 @@ namespace SoftDeleteServices.Concrete
             resetSoftDeleteThisEntity.SoftDeleted = false;
             _context.SaveChanges();
 
+            status.Message = "Successfully reset the soft delete on this entry";
             status.SetResult(1);        //one changed
             return status;
         }
