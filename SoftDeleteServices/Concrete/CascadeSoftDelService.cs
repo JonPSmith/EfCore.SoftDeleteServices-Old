@@ -12,7 +12,7 @@ namespace SoftDeleteServices.Concrete
 {
     public enum CascadeSoftDelWhatDoing { SoftDelete, ResetSoftDelete, CheckWhatWillDelete, HardDeleteSoftDeleted }
 
-    public class CascadeSoftDelService
+    public class CascadeSoftDelService : ICascadeSoftDelService
     {
         private readonly DbContext _context;
 

@@ -103,7 +103,7 @@ namespace Test.UnitTests
         }
 
         [Fact]
-        public void TestResetCascadeSoftDeleteTwoLevelSoftDeleteThenUndeleteTopOk()
+        public void TestResetCascadeSoftDeleteTwoLevelSoftDeleteThenResetTopOk()
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();

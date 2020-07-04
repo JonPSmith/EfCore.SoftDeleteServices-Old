@@ -10,7 +10,7 @@ using StatusGeneric;
 
 namespace SoftDeleteServices.Concrete
 {
-    public class SoftDeleteService
+    public class SoftDeleteService : ISoftDeleteService
     {
         private readonly DbContext _context;
         private readonly bool _notFoundAllowed;
