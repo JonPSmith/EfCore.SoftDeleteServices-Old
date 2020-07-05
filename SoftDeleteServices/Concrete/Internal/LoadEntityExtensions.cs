@@ -72,8 +72,6 @@ namespace SoftDeleteServices.Concrete.Internal
 
         private static Expression<Func<T, bool>> CreateFilter<T>(this IList<PropertyInfo> keyProperties, object[] keyValues)
         {
-
-
             if (keyProperties.Count != keyValues.Length)
                 throw new ArgumentException("The number of keys values provided does not match the number of keys in the entity class.");
 

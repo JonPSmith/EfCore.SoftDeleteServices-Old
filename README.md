@@ -35,7 +35,7 @@ The status the set/reset/hard delete method returns contains:
 - `Message` which provides a user-friendly message saying what has happened, for instance "Successfully soft deleted that entry". If errors then `Message` says "Failed with xx errors".
 
 
-*See [GenericServices.StatusGeneric](https://github.com/JonPSmith/GenericServices.StatusGeneric) for more on the `IStatusGeneric` used in this project.*
+*See [GenericServices.StatusGeneric](https://github.com/JonPSmith/GenericServices.StatusGeneric) for more on how to use the returned `IStatusGeneric<int>` status in the best way. There is a library that can turn errors into ASP.NET Core ModelErrors or Web API returns.*
 
 ## Simple soft delete methods
 
