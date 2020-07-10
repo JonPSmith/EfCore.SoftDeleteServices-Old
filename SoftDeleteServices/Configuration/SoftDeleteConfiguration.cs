@@ -8,7 +8,7 @@ namespace SoftDeleteServices.Configuration
     public class SoftDeleteConfiguration<TYourSoftDeleteInterface>
         where TYourSoftDeleteInterface : class
     {
-        public Func<object, ISoftDeleteAccess<TYourSoftDeleteInterface>> CreateAccessor { get; set; }
+        public Func<object, SoftDeleteAccess<TYourSoftDeleteInterface>> CreateAccessor { get; set; }
 
         /// <summary>
         /// If this property is set to true, then it won't produce an error 

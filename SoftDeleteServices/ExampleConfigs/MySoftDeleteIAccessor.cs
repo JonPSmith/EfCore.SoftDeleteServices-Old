@@ -9,23 +9,21 @@ using SoftDeleteServices.Configuration;
 
 namespace SoftDeleteServices.ExampleConfigs
 {
-    public class MySoftDeleteAccessor : ISoftDeleteAccess<ISoftDelete>
+    public class MySoftDeleteIAccessor : ISoftDeleteAccess<ISoftDelete, bool>
     {
 
-        public MySoftDeleteAccessor(Guid currentUseId)
+        public MySoftDeleteIAccessor(Guid currentUseId)
         {
-            OtherFilters[typeof(IUserId)] = entity => ((IUserId) entity).UserId == currentUseId;
+            OtherFilters = new Dictionary<Type, Expression<Func<object, bool>>>
+            {
+                {typeof(IUserId), entity => ((IUserId) entity).UserId == currentUseId}
+            };
         }
 
-        public ISoftDelete CurrentEntity { get; set; }
-        public bool IsSoftDelete => CurrentEntity != null;
-        public bool GetSoftDeleteValue => CurrentEntity.SoftDeleted;
-        public Action<bool> SetSoftDeleteValue => input => CurrentEntity.SoftDeleted = input;
+        public Func<ISoftDelete, bool> GetSoftDeleteValue { get; } = entity => entity.SoftDeleted;
+        public Action<ISoftDelete, bool> SetSoftDeleteValue { get; } = (entity, value) => { entity.SoftDeleted = value; };
 
-        public Expression<Func<ISoftDelete, bool>> FindSoftDeletedItems = entity => entity.SoftDeleted;
-
-        public Dictionary<Type, Expression<Func<object, bool>>> OtherFilters =
-            new Dictionary<Type, Expression<Func<object, bool>>>();
+        public Dictionary<Type, Expression<Func<object, bool>>> OtherFilters { get; } 
 
     }
 }

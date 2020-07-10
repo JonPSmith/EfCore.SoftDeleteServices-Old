@@ -57,7 +57,7 @@ namespace SoftDeleteServices.Concrete.Internal
             if (entityType.IsOwned())
                 throw new ArgumentException($"The class {typeof(TEntity).Name} is an Owned class and can't be loaded on its own.");
             if (entityType.FindPrimaryKey() == null)
-                throw new ArgumentException($"The class {typeof(TEntity).Name} is read-only.");
+                throw new ArgumentException($"The class {typeof(TEntity).Name} has no primary key.");
 
             var keyProps = context.Model.FindEntityType(typeof(TEntity))
                 .FindPrimaryKey().Properties.Select(x => x.PropertyInfo).ToList();

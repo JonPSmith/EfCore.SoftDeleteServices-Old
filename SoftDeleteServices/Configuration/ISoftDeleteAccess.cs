@@ -6,13 +6,11 @@ using System.Linq.Expressions;
 
 namespace SoftDeleteServices.Configuration
 {
-    public interface ISoftDeleteAccess<TInterface>
+    public interface ISoftDeleteAccess<TInterface, TValue>
         where TInterface : class
+        where TValue : struct
     {
-        TInterface CurrentEntity { get; }
-
-        bool IsSoftDelete { get; }
-        bool GetSoftDeleteValue { get; }
-        Action<bool> SetSoftDeleteValue { get; }
+        <Func<TInterface, TValue> GetSoftDeleteValue { get; }
+        Action<TInterface, TValue> SetSoftDeleteValue { get; }
     }
 }
