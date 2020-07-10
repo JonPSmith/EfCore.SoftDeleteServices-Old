@@ -5,10 +5,11 @@ using System;
 
 namespace SoftDeleteServices.Configuration
 {
-    public class SoftDeleteConfiguration<TYourSoftDeleteInterface>
+    public class SoftDeleteConfiguration<TYourSoftDeleteInterface, TYourValue>
         where TYourSoftDeleteInterface : class
+        where TYourValue : struct
     {
-        public Func<object, SoftDeleteAccess<TYourSoftDeleteInterface>> CreateAccessor { get; set; }
+        public ISoftDeleteAccess<TYourSoftDeleteInterface, TYourValue> Accessor { get; set; }
 
         /// <summary>
         /// If this property is set to true, then it won't produce an error 

@@ -20,7 +20,7 @@ namespace SoftDeleteServices.ExampleConfigs
             };
         }
 
-        public Func<ISoftDelete, bool> GetSoftDeleteValue { get; } = entity => entity.SoftDeleted;
+        public Expression<Func<ISoftDelete, bool>> GetSoftDeleteValue { get; } = entity => entity.SoftDeleted;
         public Action<ISoftDelete, bool> SetSoftDeleteValue { get; } = (entity, value) => { entity.SoftDeleted = value; };
 
         public Dictionary<Type, Expression<Func<object, bool>>> OtherFilters { get; } 

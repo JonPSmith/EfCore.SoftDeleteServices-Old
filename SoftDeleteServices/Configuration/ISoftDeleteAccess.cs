@@ -10,7 +10,7 @@ namespace SoftDeleteServices.Configuration
         where TInterface : class
         where TValue : struct
     {
-        <Func<TInterface, TValue> GetSoftDeleteValue { get; }
+        Expression<Func<TInterface, TValue>> GetSoftDeleteValue { get; }
         Action<TInterface, TValue> SetSoftDeleteValue { get; }
     }
 }

@@ -42,10 +42,12 @@ namespace Test.UnitTests
                 context.Add(book);
                 context.SaveChanges();
 
-                var access = new MySoftDeleteAccessor(Guid.Empty);
+                var access = new MySoftDeleteIAccessor(Guid.Empty);
 
                 //ATTEMPT
-                var query = context.Books.IgnoreQueryFilters().Where(access.FindSoftDeletedItems).Cast<BookSoftDel>()
+                var getSoftValue = access.GetSoftDeleteValue.Invoke(book);
+                getSoftValue.ShouldBeTrue();
+                var query = context.Books.IgnoreQueryFilters().Where(access.GetSoftDeleteValue).Cast<BookSoftDel>()
                     .Select(x => x.Title.Length);
                 var result = query.ToList();
 
@@ -98,13 +100,19 @@ namespace Test.UnitTests
                 ceo.WorksFromMe.First().SoftDeleteLevel = 1;
                 context.SaveChanges();
 
-                Expression<Func<ICascadeSoftDelete, bool>> expression = entity => entity.SoftDeleteLevel == 0;
-                var alter = new AlterConstant(1);
-                var changedExp = alter.Modify(expression) as Expression<Func<ICascadeSoftDelete, bool>>;
+                Expression<Func<ICascadeSoftDelete, byte>> expression = entity => entity.SoftDeleteLevel;
 
-                //ATTEMPT
-                var query = context.Employees.IgnoreQueryFilters().Where(changedExp).Cast<EmployeeSoftCascade>()
-                    .Select(x => x.Name);
+                var parameter = Expression.Parameter(typeof(ICascadeSoftDelete), "entity");
+                var left = Expression.Invoke(expression,  parameter);
+                var right = Expression.Constant((byte)1, typeof(byte));
+                var equal = Expression.Equal(left, right);
+                Expression<Func<ICascadeSoftDelete, bool>> final =
+                    Expression.Lambda<Func<ICascadeSoftDelete, bool>>(equal, parameter);
+
+               //ATTEMPT
+               var query = context.Employees.IgnoreQueryFilters()
+                   .Where(final).Cast<EmployeeSoftCascade>()
+                   .Select(x => x.Name);
                 var result = query.ToList();
 
                 //VERIFY
