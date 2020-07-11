@@ -14,13 +14,13 @@ namespace SoftDeleteServices.Concrete.Internal
 {
     internal static class LoadEntityExtensions
     {
-        public static IStatusGeneric<int> CheckExecuteSoftDelete<TYourSoftDeleteInterface>(
+        public static IStatusGeneric<int> CheckExecuteSoftDelete<TInterface>(
             this DbContext context, bool notFoundAllowed,
-            Func<TYourSoftDeleteInterface, IStatusGeneric<int>> softDeleteAction, params object[] keyValues)
-            where TYourSoftDeleteInterface : class
+            Func<TInterface, IStatusGeneric<int>> softDeleteAction, params object[] keyValues)
+            where TInterface : class
         {
             var status = new StatusGenericHandler<int>();
-            var entity = context.LoadEntityViaPrimaryKeys<TYourSoftDeleteInterface>(true, keyValues);
+            var entity = context.LoadEntityViaPrimaryKeys<TInterface>(true, keyValues);
             if (entity == null)
             {
                 if (!notFoundAllowed)

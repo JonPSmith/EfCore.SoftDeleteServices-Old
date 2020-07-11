@@ -11,18 +11,18 @@ using StatusGeneric;
 
 namespace SoftDeleteServices.Concrete
 {
-    public class SingleSoftDeleteService<TYourSoftDeleteInterface>
-        where TYourSoftDeleteInterface : class
+    public class SingleSoftDeleteService<TInterface>
+        where TInterface : class
     {
         private readonly DbContext _context;
-        private readonly SoftDeleteConfiguration<TYourSoftDeleteInterface, bool> _config;
+        private readonly SoftDeleteConfiguration<TInterface, bool> _config;
 
         /// <summary>
         /// Ctor for SoftDeleteService
         /// </summary>
         /// <param name="context"></param>
         /// <param name="config"></param>
-        public SingleSoftDeleteService(DbContext context, SoftDeleteConfiguration<TYourSoftDeleteInterface, bool> config)
+        public SingleSoftDeleteService(DbContext context, SoftDeleteConfiguration<TInterface, bool> config)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -34,7 +34,7 @@ namespace SoftDeleteServices.Concrete
         /// <param name="keyValues">primary key values</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error of Not Found and notFoundAllowed is true</returns>
         public IStatusGeneric<int> SetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
-            where TEntity : class, TYourSoftDeleteInterface
+            where TEntity : class, TInterface
         {
             return _context.CheckExecuteSoftDelete<TEntity>(_config.NotFoundIsNotAnError, SetSoftDelete, keyValues);
         }
@@ -45,7 +45,7 @@ namespace SoftDeleteServices.Concrete
         /// <param name="keyValues">primary key values</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error of Not Found and notFoundAllowed is true</returns>
         public IStatusGeneric<int> ResetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
-            where TEntity : class, TYourSoftDeleteInterface
+            where TEntity : class, TInterface
         {
             return _context.CheckExecuteSoftDelete<TEntity>(_config.NotFoundIsNotAnError, ResetSoftDelete, keyValues);
         }
@@ -55,7 +55,7 @@ namespace SoftDeleteServices.Concrete
         /// </summary>
         /// <param name="softDeleteThisEntity">Mustn't be null</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error</returns>
-        public IStatusGeneric<int> SetSoftDelete(TYourSoftDeleteInterface softDeleteThisEntity)
+        public IStatusGeneric<int> SetSoftDelete(TInterface softDeleteThisEntity)
         {
             if (softDeleteThisEntity == null) throw new ArgumentNullException(nameof(softDeleteThisEntity));
 
@@ -82,7 +82,7 @@ namespace SoftDeleteServices.Concrete
         /// </summary>
         /// <param name="resetSoftDeleteThisEntity">Mustn't be null</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if errors</returns>
-        public IStatusGeneric<int> ResetSoftDelete(TYourSoftDeleteInterface resetSoftDeleteThisEntity)
+        public IStatusGeneric<int> ResetSoftDelete(TInterface resetSoftDeleteThisEntity)
         {
             if (resetSoftDeleteThisEntity == null) throw new ArgumentNullException(nameof(resetSoftDeleteThisEntity));
 
@@ -104,11 +104,10 @@ namespace SoftDeleteServices.Concrete
         /// <typeparam name="TEntity"></typeparam>
         /// <returns></returns>
         public IQueryable<TEntity> GetSoftDeletedEntries<TEntity>()
-            where TEntity : class, ISingleSoftDelete
+            where TEntity : class, TInterface
         {
-            return _context.Set<TEntity>().IgnoreQueryFilters().Where(x => x.SoftDeleted);
+            var builder = new ExpressionBuilder<TInterface>(_config);
+            return _context.Set<TEntity>().IgnoreQueryFilters().Where(builder.FormFilterSingleSoftDelete<TEntity>());
         }
-
-
     }
 }

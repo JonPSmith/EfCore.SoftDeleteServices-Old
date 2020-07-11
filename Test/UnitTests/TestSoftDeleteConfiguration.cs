@@ -9,6 +9,7 @@ using DataLayer.EfClasses;
 using DataLayer.EfCode;
 using DataLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using SoftDeleteServices.Concrete.Internal;
 using SoftDeleteServices.Configuration;
 using SoftDeleteServices.ExampleConfigs;
 using TestSupport.EfHelpers;
@@ -25,6 +26,38 @@ namespace Test.UnitTests
         public TestSoftDeleteConfiguration(ITestOutputHelper output)
         {
             _output = output;
+        }
+
+        [Fact]
+        public void TestExpressionBuilderWithUserIdOk()
+        {
+            //SETUP
+            var currentUser = Guid.NewGuid();
+            var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
+            using (var context = new SoftDelDbContext(options, currentUser))
+            {
+                context.Database.EnsureCreated();
+                var order1 = new OrderSingleSoftDelUserId
+                    { OrderRef = "Cur user Order, soft del", SoftDeleted = true, UserId = currentUser };
+                var order2 = new OrderSingleSoftDelUserId
+                    { OrderRef = "Cur user Order", SoftDeleted = false, UserId = currentUser };
+                var order3 = new OrderSingleSoftDelUserId
+                    { OrderRef = "Diff user Order", SoftDeleted = true, UserId = Guid.NewGuid() };
+                context.AddRange(order1, order2, order3);
+                context.SaveChanges();
+
+                var config = new ConfigISoftDeleteWithUserId(context);
+                var builder = new ExpressionBuilder<ISingleSoftDelete>(config);
+
+                //ATTEMPT
+                var query = context.Orders.IgnoreQueryFilters().Where(builder.FormFilterSingleSoftDelete<OrderSingleSoftDelUserId>())
+                    .Select(x => x.OrderRef);
+                var result = query.ToList();
+
+                //VERIFY
+                _output.WriteLine(query.ToQueryString());
+                result.Count.ShouldEqual(1);
+            }
         }
 
 
@@ -87,30 +120,6 @@ namespace Test.UnitTests
                 //VERIFY
                 _output.WriteLine(query.ToQueryString());
                 result.Count.ShouldEqual(2);
-            }
-        }
-
-
-
-
-        public class AlterConstant : ExpressionVisitor
-        {
-            private int _newConstant;
-
-            public AlterConstant(int newConstant)
-            {
-                _newConstant = newConstant;
-            }
-
-
-            public Expression Modify(Expression expression)
-            {
-                return Visit(expression);
-            }
-
-            protected override Expression VisitConstant(ConstantExpression node)
-            {
-                return Expression.Constant(_newConstant);
             }
         }
     }
