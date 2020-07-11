@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DataLayer.EfCode
 {
-    public class SoftDelDbContext : DbContext
+    public class SoftDelDbContext : DbContext, IUserId
     {
         /// <summary>
         /// This holds the current userId, or GUID.Empty if not given
@@ -21,7 +21,7 @@ namespace DataLayer.EfCode
             : base(options)
         {
             UserId = userId;
-            _queryFilterAuto = new QueryFilterAutoConfig(userId);
+            _queryFilterAuto = new QueryFilterAutoConfig(this);
         }
 
         public DbSet<EmployeeSoftCascade> Employees { get; set; }
@@ -48,7 +48,7 @@ namespace DataLayer.EfCode
                 .HasForeignKey<EmployeeContract>(x => x.EmployeeSoftCascadeId)
                 .OnDelete(DeleteBehavior.ClientCascade);
 
-            modelBuilder.Entity<OrderSingleSoftDelUserId>().HasQueryFilter(x => !x.SoftDeleted && x.UserId == UserId);
+            //modelBuilder.Entity<OrderSingleSoftDelUserId>().HasQueryFilter(x => !x.SoftDeleted && x.UserId == UserId);
 
 
             //This automatically configures the two types of soft deletes
@@ -57,8 +57,7 @@ namespace DataLayer.EfCode
                 if (typeof(ISingleSoftDelete).IsAssignableFrom(entityType.ClrType))
                 {
                     if (typeof(IUserId).IsAssignableFrom(entityType.ClrType))
-                        continue;
-                        //_queryFilterAuto.SetQueryFilter(entityType, MyQueryFilterTypes.SingleSoftDeleteAndUserId);
+                        _queryFilterAuto.SetQueryFilter(entityType, MyQueryFilterTypes.SingleSoftDeleteAndUserId);
                     else
                         entityType.AddSoftDeleteQueryFilter();
                 }

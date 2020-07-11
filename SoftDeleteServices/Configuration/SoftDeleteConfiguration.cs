@@ -25,8 +25,8 @@ namespace SoftDeleteServices.Configuration
         /// <summary>
         /// This text is used in various 
         /// </summary>
-        public string SoftDeletedTextPastTense { get; set; } = "soft deleted";
+        public string TextSoftDeletedPastTense { get; set; } = "soft deleted";
 
-        public string ResetSoftDeleteText { get; set; } = "reset the soft delete";
+        public string TextResetSoftDelete { get; set; } = "reset the soft delete";
     }
 }

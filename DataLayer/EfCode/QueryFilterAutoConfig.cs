@@ -14,11 +14,11 @@ namespace DataLayer.EfCode
 
     public class QueryFilterAutoConfig                             
     {
-        private readonly Guid _userId;                             
+        private readonly IUserId _userIdProvider;                             
 
-        public QueryFilterAutoConfig(Guid userId)                  
+        public QueryFilterAutoConfig(IUserId userIdProvider)                  
         {                                                          
-            _userId = userId;                                      
+            _userIdProvider = userIdProvider;                                      
         }
 
         public void SetQueryFilter(IMutableEntityType entityData,  
@@ -43,7 +43,7 @@ namespace DataLayer.EfCode
         private LambdaExpression GetUserIdFilter<TEntity>()
             where TEntity : class, IUserId                 
         {                                                  
-            Expression<Func<TEntity, bool>> filter = x => x.UserId == _userId;                  
+            Expression<Func<TEntity, bool>> filter = x => x.UserId == _userIdProvider.UserId;                  
             return filter;                                 
         }
 
@@ -51,7 +51,7 @@ namespace DataLayer.EfCode
         private LambdaExpression GetSingleSoftDeleteAndUserIdFilter<TEntity>()
             where TEntity : class, IUserId, ISingleSoftDelete
         {
-            Expression<Func<TEntity, bool>> filter = x => x.UserId == _userId && !x.SoftDeleted;
+            Expression<Func<TEntity, bool>> filter = x => x.UserId == _userIdProvider.UserId && !x.SoftDeleted;
             return filter;
         }
 

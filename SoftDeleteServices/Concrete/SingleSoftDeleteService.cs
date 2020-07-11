@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using DataLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using SoftDeleteServices.Concrete.Internal;
 using SoftDeleteServices.Configuration;
@@ -11,6 +10,10 @@ using StatusGeneric;
 
 namespace SoftDeleteServices.Concrete
 {
+    /// <summary>
+    /// This service handles single soft delete, i.e. it only soft deletes a single entity by setting a boolean flag in that entity
+    /// </summary>
+    /// <typeparam name="TInterface">You provide the interface you applied to your entity classes to require a boolean flag</typeparam>
     public class SingleSoftDeleteService<TInterface>
         where TInterface : class
     {
@@ -26,10 +29,15 @@ namespace SoftDeleteServices.Concrete
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _config = config ?? throw new ArgumentNullException(nameof(config));
+
+            if (_config.GetSoftDeleteValue == null)
+                throw new InvalidOperationException($"You must set the {nameof(_config.GetSoftDeleteValue)} with a query to get the soft delete bool");
+            if (_config.SetSoftDeleteValue == null)
+                throw new InvalidOperationException($"You must set the {nameof(_config.SetSoftDeleteValue)} with a function to set the value of the soft delete bool");
         }
 
         /// <summary>
-        /// This finds the entity using its primary key(s) and then soft deletes it
+        /// This finds the entity using its primary key(s) and then set the single soft delete flag so it is hidden
         /// </summary>
         /// <param name="keyValues">primary key values</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error of Not Found and notFoundAllowed is true</returns>
@@ -40,7 +48,7 @@ namespace SoftDeleteServices.Concrete
         }
 
         /// <summary>
-        /// This finds the entity using its primary key(s) and then resets the soft delete flag so it is now visible
+        /// This finds the entity using its primary key(s) and then it resets the single soft delete flag so it is now visible
         /// </summary>
         /// <param name="keyValues">primary key values</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error of Not Found and notFoundAllowed is true</returns>
@@ -51,7 +59,7 @@ namespace SoftDeleteServices.Concrete
         }
 
         /// <summary>
-        /// This soft deletes the entity
+        /// This will single soft delete the entity
         /// </summary>
         /// <param name="softDeleteThisEntity">Mustn't be null</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error</returns>
@@ -67,18 +75,18 @@ namespace SoftDeleteServices.Concrete
 
             var status = new StatusGenericHandler<int>();
             if (_config.GetSoftDeleteValue.Compile().Invoke(softDeleteThisEntity))
-                return status.AddError($"This entry is already {_config.SoftDeletedTextPastTense}.");
+                return status.AddError($"This entry is already {_config.TextSoftDeletedPastTense}.");
 
             _config.SetSoftDeleteValue(softDeleteThisEntity, true);
             _context.SaveChanges();
 
-            status.Message = $"Successfully {_config.SoftDeletedTextPastTense} this entry";
+            status.Message = $"Successfully {_config.TextSoftDeletedPastTense} this entry";
             status.SetResult(1);        //one changed
             return status;
         }
 
         /// <summary>
-        /// This resets soft delete flag is cleared so that entity is now visible
+        /// This resets the single soft delete flag so that entity is now visible
         /// </summary>
         /// <param name="resetSoftDeleteThisEntity">Mustn't be null</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if errors</returns>
@@ -88,18 +96,19 @@ namespace SoftDeleteServices.Concrete
 
             var status = new StatusGenericHandler<int>();
             if (!_config.GetSoftDeleteValue.Compile().Invoke(resetSoftDeleteThisEntity))
-                return status.AddError($"This entry isn't {_config.SoftDeletedTextPastTense}.");
+                return status.AddError($"This entry isn't {_config.TextSoftDeletedPastTense}.");
 
             _config.SetSoftDeleteValue(resetSoftDeleteThisEntity, false);
             _context.SaveChanges();
 
-            status.Message = $"Successfully {_config.ResetSoftDeleteText} on this entry";
+            status.Message = $"Successfully {_config.TextResetSoftDelete} on this entry";
             status.SetResult(1);        //one changed
             return status;
         }
 
         /// <summary>
         /// This returns the soft deleted entities of type TEntity
+        /// If you set up the OtherFilters property in the config then it will apply all the appropriate query filter so you only see the ones you should
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <returns></returns>
