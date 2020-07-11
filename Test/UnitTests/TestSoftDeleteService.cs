@@ -1,11 +1,15 @@
 ﻿// Copyright (c) 2020 Jon P Smith, GitHub: JonPSmith, web: http://www.thereformedprogrammer.net/
 // Licensed under MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using DataLayer.EfClasses;
 using DataLayer.EfCode;
+using DataLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using SoftDeleteServices.Concrete;
+using SoftDeleteServices.ExampleConfigs;
 using TestSupport.EfHelpers;
 using Xunit;
 using Xunit.Extensions.AssertExtensions;
@@ -46,7 +50,8 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var book = AddBookWithReviewToDb(context);
 
-                var service = new SoftDeleteServices.Concrete.SoftDeleteService(context);
+                var config = new ConfigISoftDeleteWithUserId(Guid.Empty);
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
                 var status = service.SetSoftDelete(book);
@@ -72,7 +77,8 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var book = AddBookWithReviewToDb(context);
 
-                var service = new SoftDeleteServices.Concrete.SoftDeleteService(context);
+                var config = new ConfigISoftDeleteWithUserId(Guid.Empty);
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
                 var status = service.SetSoftDeleteViaKeys<BookSoftDel>(book.BookSoftDelId);
@@ -97,7 +103,8 @@ namespace Test.UnitTests
             {
                 context.Database.EnsureCreated();
 
-                var service = new SoftDeleteServices.Concrete.SoftDeleteService(context);
+                var config = new ConfigISoftDeleteWithUserId(Guid.Empty);
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
                 var status = service.SetSoftDeleteViaKeys<BookSoftDel>(123);
@@ -118,7 +125,8 @@ namespace Test.UnitTests
             {
                 context.Database.EnsureCreated();
 
-                var service = new SoftDeleteServices.Concrete.SoftDeleteService(context, true);
+                var config = new ConfigISoftDeleteWithUserId(Guid.Empty) {NotFoundIsNotAnError = true};
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
                 var status = service.SetSoftDeleteViaKeys<BookSoftDel>(123);
@@ -139,7 +147,8 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var book = AddBookWithReviewToDb(context);
 
-                var service = new SoftDeleteServices.Concrete.SoftDeleteService(context);
+                var config = new ConfigISoftDeleteWithUserId(Guid.Empty);
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
                 service.SetSoftDelete(book);
 
                 //ATTEMPT
@@ -167,7 +176,8 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 bookId = AddBookWithReviewToDb(context).BookSoftDelId;
 
-                var service = new SoftDeleteServices.Concrete.SoftDeleteService(context);
+                var config = new ConfigISoftDeleteWithUserId(Guid.Empty);
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
                 var status1 = service.SetSoftDeleteViaKeys<BookSoftDel>(bookId);
                 status1.IsValid.ShouldBeTrue(status1.GetAllErrors());
 
@@ -197,14 +207,16 @@ namespace Test.UnitTests
                 var book1 = AddBookWithReviewToDb(context, "test1");
                 var book2 = AddBookWithReviewToDb(context, "test2");
 
-                var service = new SoftDeleteServices.Concrete.SoftDeleteService(context);
+                var config = new ConfigISoftDeleteWithUserId(Guid.Empty);
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
                 var status = service.SetSoftDelete(book1);
                 status.IsValid.ShouldBeTrue(status.GetAllErrors());
 
             }
             using (var context = new SoftDelDbContext(options))
             {
-                var service = new SoftDeleteServices.Concrete.SoftDeleteService(context);
+                var config = new ConfigISoftDeleteWithUserId(Guid.Empty);
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
                 var softDelBooks = service.GetSoftDeletedEntries<BookSoftDel>().ToList();

@@ -42,12 +42,12 @@ namespace Test.UnitTests
                 context.Add(book);
                 context.SaveChanges();
 
-                var access = new MySoftDeleteIAccessor(Guid.Empty);
+                var config = new ConfigISoftDeleteWithUserId(Guid.Empty);
 
                 //ATTEMPT
-                var getSoftValue = access.GetSoftDeleteValue.Invoke(book);
+                var getSoftValue = config.GetSoftDeleteValue.Invoke(book);
                 getSoftValue.ShouldBeTrue();
-                var query = context.Books.IgnoreQueryFilters().Where(access.GetSoftDeleteValue).Cast<BookSoftDel>()
+                var query = context.Books.IgnoreQueryFilters().Where(config.GetSoftDeleteValue).Cast<BookSoftDel>()
                     .Select(x => x.Title.Length);
                 var result = query.ToList();
 
@@ -57,34 +57,6 @@ namespace Test.UnitTests
             }
         }
 
-
-        [Fact]
-        public void TestBuildExpressionQueryOk()
-        {
-            //SETUP
-            var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
-            using (var context = new SoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
-
-                ParameterExpression parameter = Expression.Parameter(typeof(ICascadeSoftDelete), "entity");
-                Expression<Func<ICascadeSoftDelete, byte>> expression = entity => entity.SoftDeleteLevel;
-
-                //Expression left = Expression.Call(parameter, null);
-                //Expression right = Expression.Constant(1, typeof(byte));
-                //var finalExp = Expression.Equal(left, right);
-
-                ////ATTEMPT
-                //var query = context.Employees.IgnoreQueryFilters().Where(x => finalExp(x)).Cast<BookSoftDel>()
-                //    .Select(x => x.Title.Length);
-                //var result = query.ToList();
-
-                ////VERIFY
-                //_output.WriteLine(query.ToQueryString());
-                //result.Count.ShouldEqual(1);
-            }
-        }
 
 
         [Fact]
@@ -102,16 +74,15 @@ namespace Test.UnitTests
 
                 Expression<Func<ICascadeSoftDelete, byte>> expression = entity => entity.SoftDeleteLevel;
 
-                var parameter = Expression.Parameter(typeof(ICascadeSoftDelete), "entity");
+                var parameter = Expression.Parameter(typeof(ICascadeSoftDelete), expression.Parameters.Single().Name);
                 var left = Expression.Invoke(expression,  parameter);
                 var right = Expression.Constant((byte)1, typeof(byte));
                 var equal = Expression.Equal(left, right);
-                Expression<Func<ICascadeSoftDelete, bool>> final =
-                    Expression.Lambda<Func<ICascadeSoftDelete, bool>>(equal, parameter);
+                var dynamicFilter = Expression.Lambda<Func<ICascadeSoftDelete, bool>>(equal, parameter);
 
                //ATTEMPT
                var query = context.Employees.IgnoreQueryFilters()
-                   .Where(final).Cast<EmployeeSoftCascade>()
+                   .Where(dynamicFilter).Cast<EmployeeSoftCascade>()
                    .Select(x => x.Name);
                 var result = query.ToList();
 

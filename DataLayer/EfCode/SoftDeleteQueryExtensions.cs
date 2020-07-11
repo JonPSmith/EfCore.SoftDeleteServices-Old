@@ -34,7 +34,7 @@ namespace DataLayer.EfCode
         }
 
         private static LambdaExpression GetSoftDeleteFilter<TEntity>()
-            where TEntity : class, ISoftDelete
+            where TEntity : class, ISingleSoftDelete
         {
             Expression<Func<TEntity, bool>> filter = x => !x.SoftDeleted;
             return filter;

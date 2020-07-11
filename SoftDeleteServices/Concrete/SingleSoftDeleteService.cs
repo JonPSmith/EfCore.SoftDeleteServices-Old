@@ -6,24 +6,26 @@ using System.Linq;
 using DataLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using SoftDeleteServices.Concrete.Internal;
+using SoftDeleteServices.Configuration;
 using StatusGeneric;
 
 namespace SoftDeleteServices.Concrete
 {
-    public class SoftDeleteService : ISoftDeleteService
+    public class SingleSoftDeleteService<TYourSoftDeleteInterface> : ISingleSoftDeleteService
+        where TYourSoftDeleteInterface : class
     {
         private readonly DbContext _context;
-        private readonly bool _notFoundAllowed;
+        private readonly SoftDeleteConfiguration<TYourSoftDeleteInterface, bool> _config;
 
         /// <summary>
         /// Ctor for SoftDeleteService
         /// </summary>
         /// <param name="context"></param>
-        /// <param name="notFoundAllowed">Defaults to not found being an error. Set to true if not found isn't an error</param>
-        public SoftDeleteService(DbContext context, bool notFoundAllowed = false)
+        /// <param name="config"></param>
+        public SingleSoftDeleteService(DbContext context, SoftDeleteConfiguration<TYourSoftDeleteInterface, bool> config)
         {
-            _context = context;
-            _notFoundAllowed = notFoundAllowed;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         /// <summary>
@@ -33,9 +35,9 @@ namespace SoftDeleteServices.Concrete
         /// <param name="keyValues">primary key values</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error of Not Found and notFoundAllowed is true</returns>
         public IStatusGeneric<int> SetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
-            where TEntity : class, ISoftDelete
+            where TEntity : class, ISingleSoftDelete
         {
-            return _context.CheckExecuteSoftDelete<TEntity>(_notFoundAllowed, SetSoftDelete, keyValues);
+            return _context.CheckExecuteSoftDelete<TEntity>(_config.NotFoundIsNotAnError, SetSoftDelete, keyValues);
         }
 
         /// <summary>
@@ -45,9 +47,9 @@ namespace SoftDeleteServices.Concrete
         /// <param name="keyValues">primary key values</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error of Not Found and notFoundAllowed is true</returns>
         public IStatusGeneric<int> ResetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
-            where TEntity : class, ISoftDelete
+            where TEntity : class, ISingleSoftDelete
         {
-            return _context.CheckExecuteSoftDelete<TEntity>(_notFoundAllowed, ResetSoftDelete, keyValues);
+            return _context.CheckExecuteSoftDelete<TEntity>(_config.NotFoundIsNotAnError, ResetSoftDelete, keyValues);
         }
 
         /// <summary>
@@ -57,7 +59,7 @@ namespace SoftDeleteServices.Concrete
         /// <param name="softDeleteThisEntity">Mustn't be null</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error</returns>
         public IStatusGeneric<int> SetSoftDelete<TEntity>(TEntity softDeleteThisEntity)
-            where TEntity : class, ISoftDelete
+            where TEntity : class, ISingleSoftDelete
         {
             if (softDeleteThisEntity == null) throw new ArgumentNullException(nameof(softDeleteThisEntity));
 
@@ -86,7 +88,7 @@ namespace SoftDeleteServices.Concrete
         /// <param name="resetSoftDeleteThisEntity">Mustn't be null</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if errors</returns>
         public IStatusGeneric<int> ResetSoftDelete<TEntity>(TEntity resetSoftDeleteThisEntity)
-            where TEntity : class, ISoftDelete
+            where TEntity : class, ISingleSoftDelete
         {
             if (resetSoftDeleteThisEntity == null) throw new ArgumentNullException(nameof(resetSoftDeleteThisEntity));
 
@@ -108,7 +110,7 @@ namespace SoftDeleteServices.Concrete
         /// <typeparam name="TEntity"></typeparam>
         /// <returns></returns>
         public IQueryable<TEntity> GetSoftDeletedEntries<TEntity>()
-            where TEntity : class, ISoftDelete
+            where TEntity : class, ISingleSoftDelete
         {
             return _context.Set<TEntity>().IgnoreQueryFilters().Where(x => x.SoftDeleted);
         }

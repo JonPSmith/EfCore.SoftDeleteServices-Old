@@ -37,7 +37,7 @@ namespace DataLayer.EfCode
             //This automatically configures the two types of soft deletes
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
-                if (typeof(ISoftDelete).IsAssignableFrom(entityType.ClrType))
+                if (typeof(ISingleSoftDelete).IsAssignableFrom(entityType.ClrType))
                 {
                     entityType.AddSoftDeleteQueryFilter();
                 }

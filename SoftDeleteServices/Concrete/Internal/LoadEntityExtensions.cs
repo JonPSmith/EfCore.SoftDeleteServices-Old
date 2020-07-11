@@ -16,8 +16,8 @@ namespace SoftDeleteServices.Concrete.Internal
     {
         public static IStatusGeneric<int> CheckExecuteSoftDelete<TEntity>(
             this DbContext context, bool notFoundAllowed,
-            Func<ISoftDelete, IStatusGeneric<int>> softDeleteAction, params object[] keyValues)
-            where TEntity : class, ISoftDelete
+            Func<ISingleSoftDelete, IStatusGeneric<int>> softDeleteAction, params object[] keyValues)
+            where TEntity : class, ISingleSoftDelete
         {
             var status = new StatusGenericHandler<int>();
             var entity = context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);

@@ -6,7 +6,7 @@ using DataLayer.Interfaces;
 
 namespace DataLayer.EfClasses
 {
-    public class BookSoftDel : ISoftDelete
+    public class BookSoftDel : ISingleSoftDelete
     {
         public int BookSoftDelId { get; set; }
         public string Title { get; set; }

@@ -7,7 +7,7 @@ using StatusGeneric;
 
 namespace SoftDeleteServices
 {
-    public interface ISoftDeleteService
+    public interface ISingleSoftDeleteService
     {
         /// <summary>
         /// This finds the entity using its primary key(s) and then soft deletes it
@@ -16,7 +16,7 @@ namespace SoftDeleteServices
         /// <param name="keyValues">primary key values</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error of Not Found and notFoundAllowed is true</returns>
         IStatusGeneric<int> SetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
-            where TEntity : class, ISoftDelete;
+            where TEntity : class, ISingleSoftDelete;
 
         /// <summary>
         /// This finds the entity using its primary key(s) and then resets the soft delete flag so it is now visible
@@ -25,7 +25,7 @@ namespace SoftDeleteServices
         /// <param name="keyValues">primary key values</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error of Not Found and notFoundAllowed is true</returns>
         IStatusGeneric<int> ResetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
-            where TEntity : class, ISoftDelete;
+            where TEntity : class, ISingleSoftDelete;
 
         /// <summary>
         /// This soft deletes the entity
@@ -34,7 +34,7 @@ namespace SoftDeleteServices
         /// <param name="softDeleteThisEntity">Mustn't be null</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if errors</returns>
         IStatusGeneric<int> SetSoftDelete<TEntity>(TEntity softDeleteThisEntity)
-            where TEntity : class, ISoftDelete;
+            where TEntity : class, ISingleSoftDelete;
 
         /// <summary>
         /// This resets soft delete flag is cleared so that entity is now visible
@@ -43,7 +43,7 @@ namespace SoftDeleteServices
         /// <param name="resetSoftDeleteThisEntity">Mustn't be null</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if errors</returns>
         IStatusGeneric<int> ResetSoftDelete<TEntity>(TEntity resetSoftDeleteThisEntity)
-            where TEntity : class, ISoftDelete;
+            where TEntity : class, ISingleSoftDelete;
 
         /// <summary>
         /// This returns the soft deleted entities of type TEntity
@@ -51,6 +51,6 @@ namespace SoftDeleteServices
         /// <typeparam name="TEntity"></typeparam>
         /// <returns></returns>
         IQueryable<TEntity> GetSoftDeletedEntries<TEntity>()
-            where TEntity : class, ISoftDelete;
+            where TEntity : class, ISingleSoftDelete;
     }
 }

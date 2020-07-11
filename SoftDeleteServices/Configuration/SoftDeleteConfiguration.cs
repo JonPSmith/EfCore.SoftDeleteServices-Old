@@ -2,6 +2,8 @@
 // Licensed under MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace SoftDeleteServices.Configuration
 {
@@ -9,7 +11,10 @@ namespace SoftDeleteServices.Configuration
         where TYourSoftDeleteInterface : class
         where TYourValue : struct
     {
-        public ISoftDeleteAccess<TYourSoftDeleteInterface, TYourValue> Accessor { get; set; }
+        public Expression<Func<TYourSoftDeleteInterface, TYourValue>> GetSoftDeleteValue { get; set; }
+        public Action<TYourSoftDeleteInterface, TYourValue> SetSoftDeleteValue { get; set; }
+
+        public Dictionary<Type, Expression<Func<object, bool>>> OtherFilters { get; } = new Dictionary<Type, Expression<Func<object, bool>>>();
 
         /// <summary>
         /// If this property is set to true, then it won't produce an error 
