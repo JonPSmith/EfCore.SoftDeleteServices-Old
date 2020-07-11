@@ -16,7 +16,7 @@ using Xunit.Extensions.AssertExtensions;
 
 namespace Test.UnitTests
 {
-    public class TestSoftDeleteService
+    public class TestSingleSoftDeleteService
     {
         [Fact]
         public void TestAddBookWithReviewOk()
@@ -50,7 +50,7 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var book = AddBookWithReviewToDb(context);
 
-                var config = new ConfigISoftDeleteWithUserId(Guid.Empty);
+                var config = new ConfigISoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -77,7 +77,7 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var book = AddBookWithReviewToDb(context);
 
-                var config = new ConfigISoftDeleteWithUserId(Guid.Empty);
+                var config = new ConfigISoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -103,7 +103,7 @@ namespace Test.UnitTests
             {
                 context.Database.EnsureCreated();
 
-                var config = new ConfigISoftDeleteWithUserId(Guid.Empty);
+                var config = new ConfigISoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -125,7 +125,7 @@ namespace Test.UnitTests
             {
                 context.Database.EnsureCreated();
 
-                var config = new ConfigISoftDeleteWithUserId(Guid.Empty) {NotFoundIsNotAnError = true};
+                var config = new ConfigISoftDeleteWithUserId(context) {NotFoundIsNotAnError = true};
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -147,7 +147,7 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var book = AddBookWithReviewToDb(context);
 
-                var config = new ConfigISoftDeleteWithUserId(Guid.Empty);
+                var config = new ConfigISoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
                 service.SetSoftDelete(book);
 
@@ -176,7 +176,7 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 bookId = AddBookWithReviewToDb(context).BookSoftDelId;
 
-                var config = new ConfigISoftDeleteWithUserId(Guid.Empty);
+                var config = new ConfigISoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
                 var status1 = service.SetSoftDeleteViaKeys<BookSoftDel>(bookId);
                 status1.IsValid.ShouldBeTrue(status1.GetAllErrors());
@@ -199,7 +199,6 @@ namespace Test.UnitTests
         public void TestSoftDeleteServiceGetSoftDeletedEntriesOk()
         {
             //SETUP
-            int bookId;
             var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
             using (var context = new SoftDelDbContext(options))
             {
@@ -207,7 +206,7 @@ namespace Test.UnitTests
                 var book1 = AddBookWithReviewToDb(context, "test1");
                 var book2 = AddBookWithReviewToDb(context, "test2");
 
-                var config = new ConfigISoftDeleteWithUserId(Guid.Empty);
+                var config = new ConfigISoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
                 var status = service.SetSoftDelete(book1);
                 status.IsValid.ShouldBeTrue(status.GetAllErrors());
@@ -215,7 +214,7 @@ namespace Test.UnitTests
             }
             using (var context = new SoftDelDbContext(options))
             {
-                var config = new ConfigISoftDeleteWithUserId(Guid.Empty);
+                var config = new ConfigISoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -226,6 +225,41 @@ namespace Test.UnitTests
                 softDelBooks.Single().Title.ShouldEqual("test1");
                 context.Books.Count().ShouldEqual(1);
                 context.Books.IgnoreQueryFilters().Count().ShouldEqual(2);
+            }
+        }
+
+
+        [Fact]
+        public void TestSoftDeleteServiceGetSoftDeletedEntriesWithUserIdOk()
+        {
+            //SETUP
+            var currentUser = Guid.NewGuid();
+            var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
+            using (var context = new SoftDelDbContext(options))
+            {
+                context.Database.EnsureCreated();
+                var order1 = new OrderSingleSoftDelUserId
+                    {OrderRef = "Cur user Order, soft del", SoftDeleted = true, UserId = currentUser};
+                var order2 = new OrderSingleSoftDelUserId
+                    { OrderRef = "Cur user Order", SoftDeleted = false, UserId = currentUser };
+                var order3 = new OrderSingleSoftDelUserId
+                    { OrderRef = "Diff user Order", SoftDeleted = true, UserId = Guid.NewGuid() };
+                context.AddRange(order1, order2, order3);
+                context.SaveChanges();
+            }
+            using (var context = new SoftDelDbContext(options, currentUser))
+            {
+                var config = new ConfigISoftDeleteWithUserId(context);
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+
+                //ATTEMPT
+                var orders = service.GetSoftDeletedEntries<OrderSingleSoftDelUserId>().ToList();
+
+                //VERIFY
+                orders.Count.ShouldEqual(1);
+                orders.Single().OrderRef.ShouldEqual("Cur user Order, soft del");
+                context.Books.Count().ShouldEqual(1);
+                context.Books.IgnoreQueryFilters().Count().ShouldEqual(3);
             }
         }
 
