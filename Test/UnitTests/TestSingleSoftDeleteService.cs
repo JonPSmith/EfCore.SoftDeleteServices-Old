@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using DataLayer.EfClasses;
 using DataLayer.EfCode;
@@ -239,7 +240,7 @@ namespace Test.UnitTests
             {
                 context.Database.EnsureCreated();
                 var order1 = new OrderSingleSoftDelUserId
-                    {OrderRef = "Cur user Order, soft del", SoftDeleted = true, UserId = currentUser};
+                    { OrderRef = "Cur user Order, soft del", SoftDeleted = true, UserId = currentUser};
                 var order2 = new OrderSingleSoftDelUserId
                     { OrderRef = "Cur user Order", SoftDeleted = false, UserId = currentUser };
                 var order3 = new OrderSingleSoftDelUserId
@@ -258,8 +259,9 @@ namespace Test.UnitTests
                 //VERIFY
                 orders.Count.ShouldEqual(1);
                 orders.Single().OrderRef.ShouldEqual("Cur user Order, soft del");
-                context.Books.Count().ShouldEqual(1);
-                context.Books.IgnoreQueryFilters().Count().ShouldEqual(3);
+                context.Orders.IgnoreQueryFilters().Count().ShouldEqual(3);
+                var all = context.Orders.IgnoreQueryFilters().ToList();
+                context.Orders.Count().ShouldEqual(1);
             }
         }
 
