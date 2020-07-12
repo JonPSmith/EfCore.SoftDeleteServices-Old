@@ -48,9 +48,6 @@ namespace DataLayer.EfCode
                 .HasForeignKey<EmployeeContract>(x => x.EmployeeSoftCascadeId)
                 .OnDelete(DeleteBehavior.ClientCascade);
 
-            //modelBuilder.Entity<OrderSingleSoftDelUserId>().HasQueryFilter(x => !x.SoftDeleted && x.UserId == UserId);
-
-
             //This automatically configures the two types of soft deletes
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

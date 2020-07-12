@@ -5,8 +5,8 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
-using DataLayer.Interfaces;
 using SoftDeleteServices.Configuration;
+using static System.Linq.Expressions.Expression;
 
 [assembly: InternalsVisibleTo("Test")]
 
@@ -25,14 +25,14 @@ namespace SoftDeleteServices.Concrete.Internal
         public Expression<Func<TEntity, bool>> FormFilterSingleSoftDelete<TEntity>()
             where TEntity : class, TInterface
         {
-            var parameter = Expression.Parameter(typeof(TEntity), _config.GetSoftDeleteValue.Parameters.Single().Name);
-            var left = Expression.Invoke(_config.GetSoftDeleteValue, parameter);
-            var right = Expression.Constant(true);
-            var result = Expression.Equal(left, right);
+            var parameter = Parameter(typeof(TEntity), _config.GetSoftDeleteValue.Parameters.Single().Name);
+            var left = Invoke(_config.GetSoftDeleteValue, parameter);
+            var right = Constant(true);
+            var result = Equal(left, right);
 
             if (!_config.OtherFilters.Any(x => x.Key.IsAssignableFrom(typeof(TEntity))))
                 //no other filters to add, so go with the single one
-                return Expression.Lambda<Func<TEntity, bool>>(result, parameter);
+                return Lambda<Func<TEntity, bool>>(result, parameter);
 
             foreach (var otherFilterType in _config.OtherFilters.Keys)
             {
@@ -43,12 +43,40 @@ namespace SoftDeleteServices.Concrete.Internal
                         throw new InvalidOperationException(
                             $"The filter parameter for {otherFilterType.Name} must must match the " +
                             $"{nameof(_config.GetSoftDeleteValue)}, i.e. {_config.GetSoftDeleteValue.Parameters.Single().Name}.");
-                    result = Expression.AndAlso(result,
-                        Expression.Invoke(_config.OtherFilters[otherFilterType], parameter));
+                    result = AndAlso(result,
+                        Invoke(_config.OtherFilters[otherFilterType], parameter));
                 }
             }
 
-            return Expression.Lambda<Func<TEntity, bool>>(result, parameter);
+            return Lambda<Func<TEntity, bool>>(result, parameter);
+        }
+
+        public Expression<Func<TEntity, bool>> FormOtherFiltersOnly<TEntity>()
+        {
+            if (!_config.OtherFilters.Any(x => x.Key.IsAssignableFrom(typeof(TEntity))))
+                //no other filters to add, so go with the single one
+                return null;
+
+            var parameter = Parameter(typeof(TEntity), _config.GetSoftDeleteValue.Parameters.Single().Name);
+            Expression result = null;
+            foreach (var otherFilterType in _config.OtherFilters.Keys)
+            {
+                if (otherFilterType.IsAssignableFrom(typeof(TEntity)))
+                {
+                    var specificFilter = _config.OtherFilters[otherFilterType];
+                    if (specificFilter.Parameters.Single().Name != _config.GetSoftDeleteValue.Parameters.Single().Name)
+                        throw new InvalidOperationException(
+                            $"The filter parameter for {otherFilterType.Name} must must match the " +
+                            $"{nameof(_config.GetSoftDeleteValue)}, i.e. {_config.GetSoftDeleteValue.Parameters.Single().Name}.");
+
+                    if (result == null)
+                        result = Invoke(_config.OtherFilters[otherFilterType], parameter);
+                    else
+                        result = AndAlso(result, Invoke(_config.OtherFilters[otherFilterType], parameter));
+                }
+            }
+
+            return Lambda<Func<TEntity, bool>>(result, parameter);
         }
     }
 }

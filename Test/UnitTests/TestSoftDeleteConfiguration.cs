@@ -29,7 +29,7 @@ namespace Test.UnitTests
         }
 
         [Fact]
-        public void TestExpressionBuilderWithUserIdOk()
+        public void TestExpressionBuilderFormFilterSingleSoftDeleteWithUserIdOk()
         {
             //SETUP
             var currentUser = Guid.NewGuid();
@@ -59,7 +59,37 @@ namespace Test.UnitTests
                 result.Count.ShouldEqual(1);
             }
         }
+        [Fact]
+        public void TestExpressionBuilderFormOtherFiltersOnlyWithUserIdOk()
+        {
+            //SETUP
+            var currentUser = Guid.NewGuid();
+            var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
+            using (var context = new SoftDelDbContext(options, currentUser))
+            {
+                context.Database.EnsureCreated();
+                var order1 = new OrderSingleSoftDelUserId
+                    { OrderRef = "Cur user Order, soft del", SoftDeleted = true, UserId = currentUser };
+                var order2 = new OrderSingleSoftDelUserId
+                    { OrderRef = "Cur user Order", SoftDeleted = false, UserId = currentUser };
+                var order3 = new OrderSingleSoftDelUserId
+                    { OrderRef = "Diff user Order", SoftDeleted = true, UserId = Guid.NewGuid() };
+                context.AddRange(order1, order2, order3);
+                context.SaveChanges();
 
+                var config = new ConfigISoftDeleteWithUserId(context);
+                var builder = new ExpressionBuilder<ISingleSoftDelete>(config);
+
+                //ATTEMPT
+                var query = context.Orders.IgnoreQueryFilters().Where(builder.FormOtherFiltersOnly<OrderSingleSoftDelUserId>())
+                    .Select(x => x.OrderRef);
+                var result = query.ToList();
+
+                //VERIFY
+                _output.WriteLine(query.ToQueryString());
+                result.Count.ShouldEqual(2);
+            }
+        }
 
         [Fact]
         public void TestCanFilterUsingAccessorOk()
