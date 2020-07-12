@@ -6,49 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using DataLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using StatusGeneric;
 
 namespace SoftDeleteServices.Concrete.Internal
 {
     internal static class LoadEntityExtensions
     {
-        public static IStatusGeneric<int> CheckExecuteSoftDelete<TInterface>(
-            this DbContext context, bool notFoundAllowed,
-            Func<TInterface, IStatusGeneric<int>> softDeleteAction, params object[] keyValues)
-            where TInterface : class
-        {
-            var status = new StatusGenericHandler<int>();
-            var entity = context.LoadEntityViaPrimaryKeys<TInterface>(true, keyValues);
-            if (entity == null)
-            {
-                if (!notFoundAllowed)
-                    status.AddError("Could not find the entry you ask for.");
-                return status;
-            }
 
-            return softDeleteAction(entity);
-        }
-
-        public static IStatusGeneric<int> CheckExecuteCascadeSoftDelete<TEntity>(
-            this DbContext context, bool notFoundAllowed,
-            Func<ICascadeSoftDelete, IStatusGeneric<int>> softDeleteAction, params object[] keyValues)
-            where TEntity : class, ICascadeSoftDelete
-        {
-            var status = new StatusGenericHandler<int>();
-            var entity = context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);
-            if (entity == null)
-            {
-                if (!notFoundAllowed)
-                    status.AddError("Could not find the entry you ask for.");
-                return status;
-            }
-
-            return softDeleteAction(entity);
-        }
-
-        private static TEntity LoadEntityViaPrimaryKeys<TEntity>(this DbContext context, bool withIgnoreFilter, params object[] keyValues)
+        public static TEntity LoadEntityViaPrimaryKeys<TEntity>(this DbContext context, bool withIgnoreFilter, params object[] keyValues)
             where TEntity : class
         {
             var entityType = context.Model.FindEntityType(typeof(TEntity));

@@ -11,7 +11,7 @@ using DataLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using SoftDeleteServices.Concrete.Internal;
 using SoftDeleteServices.Configuration;
-using SoftDeleteServices.ExampleConfigs;
+using Test.ExampleConfigs;
 using TestSupport.EfHelpers;
 using Xunit;
 using Xunit.Abstractions;

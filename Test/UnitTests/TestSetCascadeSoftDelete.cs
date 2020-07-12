@@ -7,8 +7,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using DataLayer.EfClasses;
 using DataLayer.EfCode;
+using DataLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using SoftDeleteServices.Concrete;
+using Test.ExampleConfigs;
 using TestSupport.EfHelpers;
 using Xunit;
 using Xunit.Abstractions;
@@ -95,7 +97,8 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
 
-                var service = new CascadeSoftDelService(context);
+                var config = new ConfigICascadeDelete();
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT
                 var status = service.SetCascadeSoftDelete(ceo.WorksFromMe.First());
@@ -118,7 +121,8 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
 
-                var service = new CascadeSoftDelService(context);
+                var config = new ConfigICascadeDelete();
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT
                 var ex = Assert.Throws<InvalidOperationException>(() => service.SetCascadeSoftDelete(ceo.WorksFromMe.First().Contract));
@@ -138,7 +142,8 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
 
-                var service = new CascadeSoftDelService(context);
+                var config = new ConfigICascadeDelete();
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT
                 var status = service.SetCascadeSoftDelete(ceo.WorksFromMe.First());
@@ -172,7 +177,8 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
 
-                var service = new CascadeSoftDelService(context);
+                var config = new ConfigICascadeDelete();
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT
                 logs.Clear();
@@ -204,7 +210,9 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
 
-                var service = new CascadeSoftDelService(context);
+                var config = new ConfigICascadeDelete();
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+                
                 var preNumSoftDeleted = service.SetCascadeSoftDelete(ceo.WorksFromMe.First().WorksFromMe.First()).Result;
                 EmployeeSoftCascade.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
 
@@ -238,7 +246,8 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
 
-                var service = new CascadeSoftDelService(context);
+                var config = new ConfigICascadeDelete();
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT
                 var numInnerSoftDelete = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "ProjectManager1")).Result;
@@ -275,7 +284,8 @@ namespace Test.UnitTests
                 var devEntry = context.Employees.Single(x => x.Name == "dev1a");
                 devEntry.WorksFromMe = new List<EmployeeSoftCascade>{ devEntry.Manager.Manager};
 
-                var service = new CascadeSoftDelService(context);
+                var config = new ConfigICascadeDelete();
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT
                 var status = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO"));
@@ -305,7 +315,8 @@ namespace Test.UnitTests
             }
             using (var context = new SoftDelDbContext(options))
             {
-                var service = new CascadeSoftDelService(context);
+                var config = new ConfigICascadeDelete();
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT
                 logs.Clear();

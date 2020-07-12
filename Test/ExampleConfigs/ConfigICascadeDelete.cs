@@ -4,7 +4,7 @@
 using DataLayer.Interfaces;
 using SoftDeleteServices.Configuration;
 
-namespace SoftDeleteServices.ExampleConfigs
+namespace Test.ExampleConfigs
 {
     public class ConfigICascadeDelete : SoftDeleteConfiguration<ICascadeSoftDelete, byte>
     {
