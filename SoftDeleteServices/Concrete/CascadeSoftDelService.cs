@@ -125,11 +125,11 @@ namespace SoftDeleteServices.Concrete
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="resetSoftDeleteThisEntity">entity class with cascade soft delete interface. Mustn't be null</param>
         /// <returns>Returns a status. If no errors then Result contains the number of entities that had been reset, plus summary string in Message part</returns>
-
         public IStatusGeneric<int> ResetCascadeSoftDelete<TEntity>(TEntity resetSoftDeleteThisEntity)
             where TEntity : class, TInterface
         {
             if (resetSoftDeleteThisEntity == null) throw new ArgumentNullException(nameof(resetSoftDeleteThisEntity));
+
             var status = new StatusGenericHandler<int>();
             var currentDeleteLevel = _config.GetSoftDeleteValue.Compile().Invoke(resetSoftDeleteThisEntity);
             if (currentDeleteLevel == 0)

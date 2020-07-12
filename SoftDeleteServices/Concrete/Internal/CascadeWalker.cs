@@ -139,13 +139,13 @@ namespace SoftDeleteServices.Concrete.Internal
                 var navValueType = navigation.PropertyInfo.PropertyType;
                 var innerType = navValueType.GetGenericArguments().Single();
                 var genericHelperType =
-                    typeof(GenericCollectionLoader<>).MakeGenericType(innerType);
+                    typeof(GenericCollectionLoader<>).MakeGenericType(typeof(TInterface), innerType);
 
                 Activator.CreateInstance(genericHelperType, _context, principalInstance, navigation.PropertyInfo);
             }
         }
 
-        private  class GenericCollectionLoader<TEntity> where TEntity : class
+        private  class GenericCollectionLoader<TEntity> where TEntity : class, TInterface
         {
             public GenericCollectionLoader(DbContext context, object principalInstance, PropertyInfo propertyInfo)
             {
@@ -165,13 +165,13 @@ namespace SoftDeleteServices.Concrete.Internal
                 //for everything else we need to load the singleton with a IgnoreQueryFilters method
                 var navValueType = navigation.PropertyInfo.PropertyType;
                 var genericHelperType =
-                    typeof(GenericSingletonLoader<>).MakeGenericType(navValueType);
+                    typeof(GenericSingletonLoader<>).MakeGenericType(typeof(TInterface), navValueType);
 
                 Activator.CreateInstance(genericHelperType, _context, principalInstance, navigation.PropertyInfo);
             }
         }
 
-        private class GenericSingletonLoader<TEntity> where TEntity : class
+        private class GenericSingletonLoader<TEntity> where TEntity : class, TInterface
         {
             public GenericSingletonLoader(DbContext context, object principalInstance, PropertyInfo propertyInfo)
             {

@@ -20,13 +20,14 @@ However it is clean enough that you could cop the code and use in your applicati
 
 ### Cascade soft delete
 
+- **TODO**: Handle other query filter parts (hard)
+- **TODO**: Change `CascadeWalker` to return the loaded relationships, with filtering, so that it works with properties, backing fields and shadow properties (hard)
+- **TODO**: Think about using SQL code to improve performance (very hard)
 - DONE: Add versions of the methods that find the starting entity via primary keys (easy)
-- Use GenericServices's approach to not found (moderate)
-- Allow user to provide their own `ICascadeSoftDelete` interface (moderate)
-- Allow user to define some message parts (moderate)
-- Change `CascadeWalker` to return the loaded relationships, with filtering, so that it works with properties, backing fields and shadow properties (hard)
-- Handle other query filter parts (hard)
-- Think about using SQL code to improve performance (very hard)
+- DONE: Use GenericServices's approach to not found (moderate)
+- DONE: Allow user to provide their own `ICascadeSoftDelete` interface (moderate)
+- DONE: Allow user to define some message parts (moderate)
+
 
 ### Other things
 

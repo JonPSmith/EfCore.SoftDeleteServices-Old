@@ -47,10 +47,10 @@ namespace Test.UnitTests
                 context.SaveChanges();
 
                 var config = new ConfigISoftDeleteWithUserId(context);
-                var builder = new ExpressionBuilder<ISingleSoftDelete>(config);
 
                 //ATTEMPT
-                var query = context.Orders.IgnoreQueryFilters().Where(builder.FilterToGetValueSingleSoftDeletedEntities<OrderSingleSoftDelUserId>())
+                var query = context.Orders.IgnoreQueryFilters().Where(
+                        config.FilterToGetValueSingleSoftDeletedEntities<OrderSingleSoftDelUserId, ISingleSoftDelete>())
                     .Select(x => x.OrderRef);
                 var result = query.ToList();
 
@@ -78,10 +78,10 @@ namespace Test.UnitTests
                 context.SaveChanges();
 
                 var config = new ConfigISoftDeleteWithUserId(context);
-                var builder = new ExpressionBuilder<ISingleSoftDelete>(config);
 
                 //ATTEMPT
-                var query = context.Orders.IgnoreQueryFilters().Where(builder.FilterToGetValueSingleSoftDeletedEntities<OrderSingleSoftDelUserId>())
+                var query = context.Orders.IgnoreQueryFilters().Where(
+                        config.FilterToGetValueSingleSoftDeletedEntities<OrderSingleSoftDelUserId,ISingleSoftDelete>())
                     .Select(x => x.OrderRef);
                 var result = query.ToList();
 

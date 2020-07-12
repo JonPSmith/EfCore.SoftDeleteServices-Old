@@ -71,7 +71,7 @@ namespace Test.UnitTests
                 //VERIFY
                 status.IsValid.ShouldBeFalse();
                 status.Result.ShouldEqual(0);
-                status.GetAllErrors().ShouldEqual("This entry isn't soft deleted");
+                status.GetAllErrors().ShouldEqual("This entry isn't soft deleted.");
             }
         }
 
@@ -124,7 +124,7 @@ namespace Test.UnitTests
                 //VERIFY
                 status.IsValid.ShouldBeFalse();
                 status.Result.ShouldEqual(0);
-                status.GetAllErrors().ShouldEqual("This entry isn't soft deleted");
+                status.GetAllErrors().ShouldEqual("This entry isn't soft deleted.");
             }
         }
 

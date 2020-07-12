@@ -13,30 +13,52 @@ using static System.Linq.Expressions.Expression;
 
 namespace SoftDeleteServices.Concrete.Internal
 {
-    internal class ExpressionBuilder<TInterface>
-        where TInterface : class
+    internal static class ExpressionBuilder
     {
-        private readonly SoftDeleteConfiguration<TInterface, bool> _config;
-
-        public ExpressionBuilder(SoftDeleteConfiguration<TInterface, bool> config)
-        {
-            _config = config;
-        }
-
         /// <summary>
         /// This returns a where filter that returns all the valid entities that have been single soft deleted
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TInterface"></typeparam>
+        /// <param name="config"></param>
         /// <returns></returns>
-        public Expression<Func<TEntity, bool>> FilterToGetValueSingleSoftDeletedEntities<TEntity>()
-            where TEntity : class, TInterface
+        public static Expression<Func<TEntity, bool>> FilterToGetValueSingleSoftDeletedEntities<TEntity, TInterface>(
+            this SoftDeleteConfiguration<TInterface, bool> config)
+            where TInterface : class
+            where TEntity : TInterface
         {
-            var parameter = Parameter(typeof(TEntity), _config.GetSoftDeleteValue.Parameters.Single().Name);
-            var left = Invoke(_config.GetSoftDeleteValue, parameter);
-            var right = Constant(true);
+            if (config == null) throw new ArgumentNullException(nameof(config));
+            return FilterToGetSoftDeletedEntities<TEntity,TInterface, bool>(config.GetSoftDeleteValue, config.OtherFilters, true);
+        }
+
+        /// <summary>
+        /// This returns a where filter that returns all the valid entities that have been cascade soft deleted
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TInterface"></typeparam>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public static Expression<Func<TEntity, bool>> FilterToGetValueCascadeSoftDeletedEntities<TEntity, TInterface>(
+            this SoftDeleteConfiguration<TInterface, byte> config)
+            where TInterface : class
+            where TEntity : TInterface
+        {
+            return FilterToGetSoftDeletedEntities<TEntity, TInterface, byte>(config.GetSoftDeleteValue, config.OtherFilters, 1);
+        }
+
+        private static Expression<Func<TEntity, bool>> FilterToGetSoftDeletedEntities<TEntity, TInterface, TValue>(
+            Expression<Func<TInterface, TValue>> getSoftDeleteValue,
+            Dictionary<Type, Expression<Func<object, bool>>> otherFilters,
+            TValue valueToFilterBy)
+            where TInterface : class
+            where TEntity : TInterface
+        {
+            var parameter = Parameter(typeof(TEntity), getSoftDeleteValue.Parameters.Single().Name);
+            var left = Invoke(getSoftDeleteValue, parameter);
+            var right = Constant(valueToFilterBy);
             var result = Equal(left, right);
 
-            return AddOtherFilters<TEntity>(result, parameter, _config.OtherFilters);
+            return AddOtherFilters<TEntity>(result, parameter, otherFilters);
         }
 
         /// <summary>
@@ -45,7 +67,7 @@ namespace SoftDeleteServices.Concrete.Internal
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <returns></returns>
-        public Expression<Func<TEntity, bool>> FormOtherFiltersOnly<TEntity>(Dictionary<Type, Expression<Func<object, bool>>> otherFilters)
+        public static Expression<Func<TEntity, bool>> FormOtherFiltersOnly<TEntity>(this Dictionary<Type, Expression<Func<object, bool>>> otherFilters)
         {
             var parameter = otherFilters.Values.Any()
                 ? Parameter(typeof(TEntity), otherFilters.Values.First().Parameters.Single().Name)
@@ -53,7 +75,7 @@ namespace SoftDeleteServices.Concrete.Internal
             return AddOtherFilters<TEntity>(null, parameter, otherFilters);
         }
 
-        public static Expression<Func<TEntity, bool>> AddOtherFilters<TEntity>(
+        private static Expression<Func<TEntity, bool>> AddOtherFilters<TEntity>(
             BinaryExpression initialExpression,
             ParameterExpression parameter,
             Dictionary<Type, Expression<Func<object, bool>>> otherFilters)
