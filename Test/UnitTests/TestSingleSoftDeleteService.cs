@@ -96,6 +96,33 @@ namespace Test.UnitTests
         }
 
         [Fact]
+        public void TestSoftDeleteServiceSetSoftDeleteViaKeysBadKey()
+        {
+            //SETUP
+            var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
+            using (var context = new SoftDelDbContext(options))
+            {
+                context.Database.EnsureCreated();
+                var book = AddBookWithReviewToDb(context);
+
+                var config = new ConfigISoftDeleteWithUserId(context);
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+
+                //ATTEMPT
+                var status = service.SetSoftDeleteViaKeys<BookSoftDel>(book);
+
+                //VERIFY
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(1);
+            }
+            using (var context = new SoftDelDbContext(options))
+            {
+                context.Books.Count().ShouldEqual(0);
+                context.Books.IgnoreQueryFilters().Count().ShouldEqual(1);
+            }
+        }
+
+        [Fact]
         public void TestSoftDeleteServiceSetSoftDeleteViaKeysNotFoundBad()
         {
             //SETUP

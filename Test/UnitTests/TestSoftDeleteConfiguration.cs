@@ -50,7 +50,7 @@ namespace Test.UnitTests
                 var builder = new ExpressionBuilder<ISingleSoftDelete>(config);
 
                 //ATTEMPT
-                var query = context.Orders.IgnoreQueryFilters().Where(builder.FormFilterSingleSoftDelete<OrderSingleSoftDelUserId>())
+                var query = context.Orders.IgnoreQueryFilters().Where(builder.FilterToGetValueSingleSoftDeletedEntities<OrderSingleSoftDelUserId>())
                     .Select(x => x.OrderRef);
                 var result = query.ToList();
 
@@ -81,13 +81,13 @@ namespace Test.UnitTests
                 var builder = new ExpressionBuilder<ISingleSoftDelete>(config);
 
                 //ATTEMPT
-                var query = context.Orders.IgnoreQueryFilters().Where(builder.FormOtherFiltersOnly<OrderSingleSoftDelUserId>())
+                var query = context.Orders.IgnoreQueryFilters().Where(builder.FilterToGetValueSingleSoftDeletedEntities<OrderSingleSoftDelUserId>())
                     .Select(x => x.OrderRef);
                 var result = query.ToList();
 
                 //VERIFY
                 _output.WriteLine(query.ToQueryString());
-                result.Count.ShouldEqual(2);
+                result.Count.ShouldEqual(1);
             }
         }
 

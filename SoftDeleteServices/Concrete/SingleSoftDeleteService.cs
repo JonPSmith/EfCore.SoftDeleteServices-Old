@@ -44,7 +44,7 @@ namespace SoftDeleteServices.Concrete
         public IStatusGeneric<int> SetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
             where TEntity : class, TInterface
         {
-            return CheckExecuteSoftDelete(SetSoftDelete, keyValues);
+            return CheckExecuteSoftDelete<TEntity>(SetSoftDelete, keyValues);
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace SoftDeleteServices.Concrete
         public IStatusGeneric<int> ResetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
             where TEntity : class, TInterface
         {
-            return CheckExecuteSoftDelete(ResetSoftDelete, keyValues);
+            return CheckExecuteSoftDelete<TEntity>(ResetSoftDelete, keyValues);
         }
 
         /// <summary>
@@ -116,17 +116,18 @@ namespace SoftDeleteServices.Concrete
             where TEntity : class, TInterface
         {
             var builder = new ExpressionBuilder<TInterface>(_config);
-            return _context.Set<TEntity>().IgnoreQueryFilters().Where(builder.FormFilterSingleSoftDelete<TEntity>());
+            return _context.Set<TEntity>().IgnoreQueryFilters().Where(builder.FilterToGetValueSingleSoftDeletedEntities<TEntity>());
         }
 
         //-----------------------------------------------
         //private methods
 
-        public IStatusGeneric<int> CheckExecuteSoftDelete(
+        public IStatusGeneric<int> CheckExecuteSoftDelete<TEntity>(
             Func<TInterface, IStatusGeneric<int>> softDeleteAction, params object[] keyValues)
+            where TEntity : class, TInterface
         {
             var status = new StatusGenericHandler<int>();
-            var entity = _context.LoadEntityViaPrimaryKeys<TInterface>(true, keyValues);
+            var entity = _context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);
             if (entity == null)
             {
                 if (!_config.NotFoundIsNotAnError)

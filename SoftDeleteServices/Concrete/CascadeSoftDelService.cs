@@ -196,7 +196,9 @@ namespace SoftDeleteServices.Concrete
         public IQueryable<TEntity> GetSoftDeletedEntries<TEntity>()
             where TEntity : class, TInterface
         {
-            return _context.Set<TEntity>().IgnoreQueryFilters().Where(x => x.SoftDeleteLevel == 1);
+            throw new NotImplementedException();
+            //var builder = new ExpressionBuilder<TInterface>(_config);
+            //return _context.Set<TEntity>().IgnoreQueryFilters().Where(builder.FilterToGetValueSingleSoftDeletedEntities<TEntity>(false));
         }
 
         //---------------------------------------------------------
