@@ -96,7 +96,7 @@ namespace Test.UnitTests
         }
 
         [Fact]
-        public void TestSoftDeleteServiceSetSoftDeleteViaKeysBadKey()
+        public void TestSoftDeleteServiceSetSoftDeleteViaKeysBadKeyType()
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
@@ -109,16 +109,31 @@ namespace Test.UnitTests
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
-                var status = service.SetSoftDeleteViaKeys<BookSoftDel>(book);
+                var ex = Assert.Throws<ArgumentException>(() => service.SetSoftDeleteViaKeys<BookSoftDel>(book));
 
                 //VERIFY
-                status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                status.Result.ShouldEqual(1);
+                ex.Message.ShouldEqual("Mismatch in keys: your provided key 1 (of 1) is of type BookSoftDel but entity key's type is System.Int32 (Parameter 'keyValues')");
             }
+        }
+
+        [Fact]
+        public void TestSoftDeleteServiceSetSoftDeleteViaKeysBadNumberOfKeys()
+        {
+            //SETUP
+            var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
             using (var context = new SoftDelDbContext(options))
             {
-                context.Books.Count().ShouldEqual(0);
-                context.Books.IgnoreQueryFilters().Count().ShouldEqual(1);
+                context.Database.EnsureCreated();
+                var book = AddBookWithReviewToDb(context);
+
+                var config = new ConfigISoftDeleteWithUserId(context);
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+
+                //ATTEMPT
+                var ex = Assert.Throws<ArgumentException>(() => service.SetSoftDeleteViaKeys<BookSoftDel>(1,2));
+
+                //VERIFY
+                ex.Message.ShouldEqual("Mismatch in keys: your provided 2 key(s) and the entity has 1 key(s) (Parameter 'keyValues')");
             }
         }
 

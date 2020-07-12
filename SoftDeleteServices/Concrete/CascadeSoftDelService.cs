@@ -26,6 +26,7 @@ namespace SoftDeleteServices.Concrete
         /// This provides a equivalent to a SQL cascade delete, but using a soft delete approach.
         /// </summary>
         /// <param name="context"></param>
+        /// <param name="config"></param>
         public CascadeSoftDelService(DbContext context, SoftDeleteConfiguration<TInterface, byte> config)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -47,7 +48,7 @@ namespace SoftDeleteServices.Concrete
         public IStatusGeneric<int> SetCascadeSoftDeleteViaKeys<TEntity>(params object[] keyValues)
             where TEntity : class, TInterface
         {
-            return CheckExecuteCascadeSoftDelete(x=>  SetCascadeSoftDelete(x), keyValues);
+            return CheckExecuteCascadeSoftDelete<TEntity>(x=>  SetCascadeSoftDelete(x), keyValues);
         }
 
         /// <summary>
@@ -59,7 +60,7 @@ namespace SoftDeleteServices.Concrete
         public IStatusGeneric<int> ResetCascadeSoftDeleteViaKeys<TEntity>(params object[] keyValues)
             where TEntity : class, TInterface
         {
-            return CheckExecuteCascadeSoftDelete(ResetCascadeSoftDelete, keyValues);
+            return CheckExecuteCascadeSoftDelete<TEntity>(ResetCascadeSoftDelete, keyValues);
         }
 
         /// <summary>
@@ -73,7 +74,7 @@ namespace SoftDeleteServices.Concrete
         public IStatusGeneric<int> CheckCascadeSoftDeleteViaKeys<TEntity>(params object[] keyValues)
             where TEntity : class, TInterface
         {
-            return CheckExecuteCascadeSoftDelete(CheckCascadeSoftDelete, keyValues);
+            return CheckExecuteCascadeSoftDelete<TEntity>(CheckCascadeSoftDelete, keyValues);
         }
 
         /// <summary>
@@ -86,7 +87,7 @@ namespace SoftDeleteServices.Concrete
         public IStatusGeneric<int> HardDeleteSoftDeletedEntriesViaKeys<TEntity>(params object[] keyValues)
             where TEntity : class, TInterface
         {
-            return CheckExecuteCascadeSoftDelete(HardDeleteSoftDeletedEntries, keyValues);
+            return CheckExecuteCascadeSoftDelete<TEntity>(HardDeleteSoftDeletedEntries, keyValues);
         }
 
         /// <summary>
@@ -100,8 +101,6 @@ namespace SoftDeleteServices.Concrete
             where TEntity : class, TInterface
         {
             if (softDeleteThisEntity == null) throw new ArgumentNullException(nameof(softDeleteThisEntity));
-            
-            var status = new StatusGenericHandler<int>();
 
             //If is a one-to-one entity we return an error
             var keys = _context.Entry(softDeleteThisEntity).Metadata.GetForeignKeys();
@@ -110,6 +109,7 @@ namespace SoftDeleteServices.Concrete
                 throw new InvalidOperationException("You cannot soft delete a one-to-one relationship. " +
                                                     "It causes problems if you try to create a new version.");
 
+            var status = new StatusGenericHandler<int>();
             if (_config.GetSoftDeleteValue.Compile().Invoke(softDeleteThisEntity) != 0)
                 return status.AddError($"This entry is already {_config.TextSoftDeletedPastTense}.");
 
@@ -204,11 +204,12 @@ namespace SoftDeleteServices.Concrete
         //---------------------------------------------------------
         //private methods
 
-        public IStatusGeneric<int> CheckExecuteCascadeSoftDelete(
+        public IStatusGeneric<int> CheckExecuteCascadeSoftDelete<TEntity>(
             Func<TInterface, IStatusGeneric<int>> softDeleteAction, params object[] keyValues)
+            where TEntity : class, TInterface
         {
             var status = new StatusGenericHandler<int>();
-            var entity = _context.LoadEntityViaPrimaryKeys<TInterface>(true, keyValues);
+            var entity = _context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);
             if (entity == null)
             {
                 if (!_config.NotFoundIsNotAnError)

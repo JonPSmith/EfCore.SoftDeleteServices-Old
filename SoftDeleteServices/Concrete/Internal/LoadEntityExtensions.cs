@@ -28,6 +28,16 @@ namespace SoftDeleteServices.Concrete.Internal
             if(keyProps.Any(x => x == null))
                 throw new NotImplementedException("This library cannot handle primary keys in shadow properties or backing fields");
 
+            if (keyProps.Count != keyValues.Length)
+                throw new ArgumentException($"Mismatch in keys: your provided {keyValues.Length} key(s) and the entity has {keyProps.Count} key(s)", nameof(keyValues));
+
+            for (int i = 0; i < keyProps.Count; i++)
+            {
+                if (keyProps[i].PropertyType != keyValues[i].GetType())
+                    throw new ArgumentException($"Mismatch in keys: your provided key {i+1} (of {keyProps.Count}) is of type " +
+                                                $"{keyValues[i].GetType().Name} but entity key's type is {keyProps[i].PropertyType}", nameof(keyValues));
+            }
+
             var query = withIgnoreFilter
                 ? context.Set<TEntity>().IgnoreQueryFilters()
                 : context.Set<TEntity>();
