@@ -110,6 +110,23 @@ namespace SoftDeleteServices.Concrete
             return status;
         }
 
+        public IStatusGeneric<int> HardDeleteSoftDeletedEntries<TEntity>(TEntity hardDeleteThisEntity, bool callSaveChanges = true)
+            where TEntity : class, TInterface
+        {
+            if (hardDeleteThisEntity == null) throw new ArgumentNullException(nameof(hardDeleteThisEntity));
+            var status = new StatusGenericHandler<int>();
+            if (!_config.GetSoftDeleteValue.Compile().Invoke(hardDeleteThisEntity))
+                return status.AddError($"This entry isn't {_config.TextSoftDeletedPastTense}.");
+
+            _context.Remove(hardDeleteThisEntity);
+            if (callSaveChanges)
+                _context.SaveChanges();
+
+            status.Message = $"Successfully {_config.TextHardDeletedPastTense} this entry";
+            status.SetResult(1);        //one changed
+            return status;
+        }
+
         /// <summary>
         /// This returns the soft deleted entities of type TEntity
         /// If you set up the OtherFilters property in the config then it will apply all the appropriate query filter so you only see the ones you should

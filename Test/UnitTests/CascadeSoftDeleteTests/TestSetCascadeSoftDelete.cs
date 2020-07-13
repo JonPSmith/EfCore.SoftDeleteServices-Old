@@ -16,7 +16,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Extensions.AssertExtensions;
 
-namespace Test.UnitTests
+namespace Test.UnitTests.CascadeSoftDeleteTests
 {
     public class TestSetCascadeSoftDelete
     {
