@@ -3,7 +3,7 @@
 
 namespace DataLayer.Interfaces
 {
-    public interface ISoftDelete
+    public interface ISingleSoftDelete
     {
         bool SoftDeleted { get; set;  }
     }

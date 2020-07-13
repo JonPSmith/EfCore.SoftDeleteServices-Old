@@ -6,33 +6,36 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using DataLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using SoftDeleteServices.Configuration;
 
 namespace SoftDeleteServices.Concrete.Internal
 {
-    internal class CascadeWalker
+    internal class CascadeWalker<TInterface>
+        where TInterface : class
     {
-        
         private readonly DbContext _context;
-        private readonly CascadeSoftDelService.CascadeSoftDelWhatDoing _whatDoing;
+        private readonly SoftDeleteConfiguration<TInterface, byte> _config;
+        private readonly CascadeSoftDelWhatDoing _whatDoing;
         private readonly bool _readEveryTime;
 
         private readonly HashSet<object> _stopCircularLook = new HashSet<object>();
 
         public int NumFound { get; private set; }
 
-        public CascadeWalker(DbContext context, CascadeSoftDelService.CascadeSoftDelWhatDoing whatDoing, bool readEveryTime)
+        public CascadeWalker(DbContext context, SoftDeleteConfiguration<TInterface, byte> config,
+            CascadeSoftDelWhatDoing whatDoing, bool readEveryTime)
         {
             _context = context;
+            _config = config;
             _whatDoing = whatDoing;
             _readEveryTime = readEveryTime;
         }
 
         public void WalkEntitiesSoftDelete(object principalInstance, byte cascadeLevel)
         {
-            if (!(principalInstance is ICascadeSoftDelete castToCascadeSoftDelete && principalInstance.GetType().IsClass) || _stopCircularLook.Contains(principalInstance))
+            if (!(principalInstance is TInterface castToCascadeSoftDelete && principalInstance.GetType().IsClass) || _stopCircularLook.Contains(principalInstance))
                 return; //isn't something we need to consider, or we saw it before, so it returns 
 
             _stopCircularLook.Add(principalInstance);  //we keep a reference to this to stop the method going in a circular loop
@@ -91,28 +94,28 @@ namespace SoftDeleteServices.Concrete.Internal
         /// <param name="castToCascadeSoftDelete"></param>
         /// <param name="cascadeLevel"></param>
         /// <returns></returns>
-        private bool ApplyChangeIfAppropriate(ICascadeSoftDelete castToCascadeSoftDelete, byte cascadeLevel)
+        private bool ApplyChangeIfAppropriate(TInterface castToCascadeSoftDelete, byte cascadeLevel)
         {
             switch (_whatDoing)
             {
-                case CascadeSoftDelService.CascadeSoftDelWhatDoing.SoftDelete:
-                    if (castToCascadeSoftDelete.SoftDeleteLevel != 0)
+                case CascadeSoftDelWhatDoing.SoftDelete:
+                    if (_config.GetSoftDeleteValue.Compile().Invoke(castToCascadeSoftDelete) != 0)
                         //If the entity has already been soft deleted , then we don't change it, nor its child relationships
                         return true;
-                    castToCascadeSoftDelete.SoftDeleteLevel = cascadeLevel;
+                    _config.SetSoftDeleteValue(castToCascadeSoftDelete, cascadeLevel);
                     break;
-                case CascadeSoftDelService.CascadeSoftDelWhatDoing.ResetSoftDelete:
-                    if (castToCascadeSoftDelete.SoftDeleteLevel != cascadeLevel)
+                case CascadeSoftDelWhatDoing.ResetSoftDelete:
+                    if (_config.GetSoftDeleteValue.Compile().Invoke(castToCascadeSoftDelete) != cascadeLevel)
                         //Don't reset if it was soft deleted value doesn't match -this stops previously deleted sub-groups being updeleted
                         return true;
-                    castToCascadeSoftDelete.SoftDeleteLevel = (byte)0;
+                    _config.SetSoftDeleteValue(castToCascadeSoftDelete, 0);
                     break;
-                case CascadeSoftDelService.CascadeSoftDelWhatDoing.CheckWhatWillDelete:
-                    if (castToCascadeSoftDelete.SoftDeleteLevel == 0)
+                case CascadeSoftDelWhatDoing.CheckWhatWillDelete:
+                    if (_config.GetSoftDeleteValue.Compile().Invoke(castToCascadeSoftDelete) == 0)
                         return true;
                     break;
-                case CascadeSoftDelService.CascadeSoftDelWhatDoing.HardDeleteSoftDeleted:
-                    if (castToCascadeSoftDelete.SoftDeleteLevel == 0)
+                case CascadeSoftDelWhatDoing.HardDeleteSoftDeleted:
+                    if (_config.GetSoftDeleteValue.Compile().Invoke(castToCascadeSoftDelete) == 0)
                         return true;
                     _context.Remove(castToCascadeSoftDelete);
                     break;
@@ -127,7 +130,7 @@ namespace SoftDeleteServices.Concrete.Internal
 
         private void LoadNavigationCollection(object principalInstance, INavigation navigation)
         {
-            if (_whatDoing == CascadeSoftDelService.CascadeSoftDelWhatDoing.SoftDelete)
+            if (_whatDoing == CascadeSoftDelWhatDoing.SoftDelete)
                 //For setting we can simple load it, as we don't want to whatDoing anything that is already whatDoing
                 _context.Entry(principalInstance).Collection(navigation.PropertyInfo.Name).Load();
             else
@@ -136,13 +139,13 @@ namespace SoftDeleteServices.Concrete.Internal
                 var navValueType = navigation.PropertyInfo.PropertyType;
                 var innerType = navValueType.GetGenericArguments().Single();
                 var genericHelperType =
-                    typeof(GenericCollectionLoader<>).MakeGenericType(innerType);
+                    typeof(GenericCollectionLoader<>).MakeGenericType(typeof(TInterface), innerType);
 
                 Activator.CreateInstance(genericHelperType, _context, principalInstance, navigation.PropertyInfo);
             }
         }
 
-        private  class GenericCollectionLoader<TEntity> where TEntity : class
+        private  class GenericCollectionLoader<TEntity> where TEntity : class, TInterface
         {
             public GenericCollectionLoader(DbContext context, object principalInstance, PropertyInfo propertyInfo)
             {
@@ -154,7 +157,7 @@ namespace SoftDeleteServices.Concrete.Internal
 
         private void LoadNavigationSingleton(object principalInstance, INavigation navigation)
         {
-            if (_whatDoing == CascadeSoftDelService.CascadeSoftDelWhatDoing.SoftDelete)
+            if (_whatDoing == CascadeSoftDelWhatDoing.SoftDelete)
                 //For setting we can simple load it, as we don't want to whatDoing anything that is already whatDoing
                 _context.Entry(principalInstance).Reference(navigation.PropertyInfo.Name).Load();
             else
@@ -162,13 +165,13 @@ namespace SoftDeleteServices.Concrete.Internal
                 //for everything else we need to load the singleton with a IgnoreQueryFilters method
                 var navValueType = navigation.PropertyInfo.PropertyType;
                 var genericHelperType =
-                    typeof(GenericSingletonLoader<>).MakeGenericType(navValueType);
+                    typeof(GenericSingletonLoader<>).MakeGenericType(typeof(TInterface), navValueType);
 
                 Activator.CreateInstance(genericHelperType, _context, principalInstance, navigation.PropertyInfo);
             }
         }
 
-        private class GenericSingletonLoader<TEntity> where TEntity : class
+        private class GenericSingletonLoader<TEntity> where TEntity : class, TInterface
         {
             public GenericSingletonLoader(DbContext context, object principalInstance, PropertyInfo propertyInfo)
             {

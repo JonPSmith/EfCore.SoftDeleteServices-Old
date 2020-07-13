@@ -3,30 +3,40 @@
 
 using System;
 using System.Linq;
-using DataLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using SoftDeleteServices.Concrete.Internal;
+using SoftDeleteServices.Configuration;
 using StatusGeneric;
 
 namespace SoftDeleteServices.Concrete
 {
+    public enum CascadeSoftDelWhatDoing { SoftDelete, ResetSoftDelete, CheckWhatWillDelete, HardDeleteSoftDeleted }
 
-    public class CascadeSoftDelService : ICascadeSoftDelService
+    /// <summary>
+    /// This service handles multiple, cascade soft delete, i.e. it soft deletes an entity and its dependent relationships
+    /// </summary>
+    /// <typeparam name="TInterface">You provide the interface you applied to your entity classes to require a boolean flag</typeparam>
+    public class CascadeSoftDelService<TInterface>
+        where TInterface : class
     {
-        public enum CascadeSoftDelWhatDoing { SoftDelete, ResetSoftDelete, CheckWhatWillDelete, HardDeleteSoftDeleted }
-
         private readonly DbContext _context;
-        private readonly bool _notFoundAllowed;
+        private readonly SoftDeleteConfiguration<TInterface, byte> _config;
 
         /// <summary>
         /// This provides a equivalent to a SQL cascade delete, but using a soft delete approach.
         /// </summary>
         /// <param name="context"></param>
-        /// <param name="notFoundAllowed">Defaults to not found being an error. Set to true if not found isn't an error</param>
-        public CascadeSoftDelService(DbContext context, bool notFoundAllowed = false)
+        /// <param name="config"></param>
+        public CascadeSoftDelService(DbContext context, SoftDeleteConfiguration<TInterface, byte> config)
         {
-            _context = context;
-            _notFoundAllowed = notFoundAllowed;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+
+            if (_config.GetSoftDeleteValue == null)
+                throw new InvalidOperationException($"You must set the {nameof(_config.GetSoftDeleteValue)} with a query to get the soft delete byte");
+            if (_config.SetSoftDeleteValue == null)
+                throw new InvalidOperationException($"You must set the {nameof(_config.SetSoftDeleteValue)} with a function to set the value of the soft delete bool");
+
         }
 
         /// <summary>
@@ -36,9 +46,9 @@ namespace SoftDeleteServices.Concrete
         /// <param name="keyValues">primary key values</param>
         /// <returns>Returns status. If not errors then Result has the number of entities that have been soft deleted. Zero if error of Not Found and notFoundAllowed is true</returns>
         public IStatusGeneric<int> SetCascadeSoftDeleteViaKeys<TEntity>(params object[] keyValues)
-            where TEntity : class, ICascadeSoftDelete
+            where TEntity : class, TInterface
         {
-            return _context.CheckExecuteCascadeSoftDelete<TEntity>(_notFoundAllowed, x=>  SetCascadeSoftDelete(x), keyValues);
+            return CheckExecuteCascadeSoftDelete<TEntity>(x=>  SetCascadeSoftDelete(x), keyValues);
         }
 
         /// <summary>
@@ -48,9 +58,9 @@ namespace SoftDeleteServices.Concrete
         /// <param name="keyValues">primary key values</param>
         /// <returns>Returns status. If not errors then Result has the number of entities that have been reset. Zero if error of Not Found and notFoundAllowed is true</returns>
         public IStatusGeneric<int> ResetCascadeSoftDeleteViaKeys<TEntity>(params object[] keyValues)
-            where TEntity : class, ICascadeSoftDelete
+            where TEntity : class, TInterface
         {
-            return _context.CheckExecuteCascadeSoftDelete<TEntity>(_notFoundAllowed, ResetCascadeSoftDelete, keyValues);
+            return CheckExecuteCascadeSoftDelete<TEntity>(ResetCascadeSoftDelete, keyValues);
         }
 
         /// <summary>
@@ -62,9 +72,9 @@ namespace SoftDeleteServices.Concrete
         /// <returns>Returns status. If not errors then Message contains a message to warn what will be deleted if the HardDelete... method is called.
         /// Zero if error of Not Found and notFoundAllowed is true</returns>
         public IStatusGeneric<int> CheckCascadeSoftDeleteViaKeys<TEntity>(params object[] keyValues)
-            where TEntity : class, ICascadeSoftDelete
+            where TEntity : class, TInterface
         {
-            return _context.CheckExecuteCascadeSoftDelete<TEntity>(_notFoundAllowed, CheckCascadeSoftDelete, keyValues);
+            return CheckExecuteCascadeSoftDelete<TEntity>(CheckCascadeSoftDelete, keyValues);
         }
 
         /// <summary>
@@ -75,9 +85,9 @@ namespace SoftDeleteServices.Concrete
         /// <param name="keyValues">primary key values</param>
         /// <returns>Returns status. If not errors then Result has the number of entities that have been hard deleted. Zero if error of Not Found and notFoundAllowed is true</returns>
         public IStatusGeneric<int> HardDeleteSoftDeletedEntriesViaKeys<TEntity>(params object[] keyValues)
-            where TEntity : class, ICascadeSoftDelete
+            where TEntity : class, TInterface
         {
-            return _context.CheckExecuteCascadeSoftDelete<TEntity>(_notFoundAllowed, HardDeleteSoftDeletedEntries, keyValues);
+            return CheckExecuteCascadeSoftDelete<TEntity>(HardDeleteSoftDeletedEntries, keyValues);
         }
 
         /// <summary>
@@ -88,11 +98,9 @@ namespace SoftDeleteServices.Concrete
         /// <param name="readEveryTime">defaults to reading all collections. See documentation on how this can be used to improve performance</param>
         /// <returns>Returns a status. If no errors then Result contains the number of entities that had been cascaded deleted, plus summary string in Message part</returns>
         public IStatusGeneric<int> SetCascadeSoftDelete<TEntity>(TEntity softDeleteThisEntity, bool readEveryTime = true)
-            where TEntity : class, ICascadeSoftDelete
+            where TEntity : class, TInterface
         {
             if (softDeleteThisEntity == null) throw new ArgumentNullException(nameof(softDeleteThisEntity));
-            
-            var status = new StatusGenericHandler<int>();
 
             //If is a one-to-one entity we return an error
             var keys = _context.Entry(softDeleteThisEntity).Metadata.GetForeignKeys();
@@ -101,10 +109,11 @@ namespace SoftDeleteServices.Concrete
                 throw new InvalidOperationException("You cannot soft delete a one-to-one relationship. " +
                                                     "It causes problems if you try to create a new version.");
 
-            if (softDeleteThisEntity.SoftDeleteLevel != 0)
-                return status.AddError("This entry is already soft deleted");
+            var status = new StatusGenericHandler<int>();
+            if (_config.GetSoftDeleteValue.Compile().Invoke(softDeleteThisEntity) != 0)
+                return status.AddError($"This entry is already {_config.TextSoftDeletedPastTense}.");
 
-            var walker = new CascadeWalker(_context, CascadeSoftDelWhatDoing.SoftDelete, readEveryTime);
+            var walker = new CascadeWalker<TInterface>(_context, _config, CascadeSoftDelWhatDoing.SoftDelete, readEveryTime);
             walker.WalkEntitiesSoftDelete(softDeleteThisEntity, 1);
             _context.SaveChanges();
             return ReturnSuccessFullResult(CascadeSoftDelWhatDoing.SoftDelete, walker.NumFound);
@@ -116,21 +125,22 @@ namespace SoftDeleteServices.Concrete
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="resetSoftDeleteThisEntity">entity class with cascade soft delete interface. Mustn't be null</param>
         /// <returns>Returns a status. If no errors then Result contains the number of entities that had been reset, plus summary string in Message part</returns>
-
         public IStatusGeneric<int> ResetCascadeSoftDelete<TEntity>(TEntity resetSoftDeleteThisEntity)
-            where TEntity : class, ICascadeSoftDelete
+            where TEntity : class, TInterface
         {
             if (resetSoftDeleteThisEntity == null) throw new ArgumentNullException(nameof(resetSoftDeleteThisEntity));
-            var status = new StatusGenericHandler<int>();
-            if (resetSoftDeleteThisEntity.SoftDeleteLevel == 0)
-                return status.AddError("This entry isn't soft deleted");
 
-            if (resetSoftDeleteThisEntity.SoftDeleteLevel > 1)
-                return status.AddError($"This entry was soft deleted {resetSoftDeleteThisEntity.SoftDeleteLevel - 1} " +
-                    $"level{(resetSoftDeleteThisEntity.SoftDeleteLevel > 2  ? "s" : "")} above here");
+            var status = new StatusGenericHandler<int>();
+            var currentDeleteLevel = _config.GetSoftDeleteValue.Compile().Invoke(resetSoftDeleteThisEntity);
+            if (currentDeleteLevel == 0)
+                return status.AddError($"This entry isn't {_config.TextSoftDeletedPastTense}.");
+
+            if (currentDeleteLevel > 1)
+                return status.AddError($"This entry was soft deleted {currentDeleteLevel - 1} " +
+                    $"level{(currentDeleteLevel > 2  ? "s" : "")} above here");
 
             //For reset you need to read every time because some of the collection might be soft deleted already
-            var walker = new CascadeWalker(_context, CascadeSoftDelWhatDoing.ResetSoftDelete, true);
+            var walker = new CascadeWalker<TInterface>(_context, _config, CascadeSoftDelWhatDoing.ResetSoftDelete, true);
             walker.WalkEntitiesSoftDelete(resetSoftDeleteThisEntity, 1);
             _context.SaveChanges();
             return ReturnSuccessFullResult(CascadeSoftDelWhatDoing.ResetSoftDelete, walker.NumFound);
@@ -143,15 +153,15 @@ namespace SoftDeleteServices.Concrete
         /// <param name="checkHardDeleteThisEntity">entity class with cascade soft delete interface. Mustn't be null</param>
         /// <returns>Returns a status. If no errors then Result contains the number of entities which are eligible for hard delete, plus summary string in Message part</returns>
         public IStatusGeneric<int> CheckCascadeSoftDelete<TEntity>(TEntity checkHardDeleteThisEntity)
-            where TEntity : class, ICascadeSoftDelete
+            where TEntity : class, TInterface
         {
             if (checkHardDeleteThisEntity == null) throw new ArgumentNullException(nameof(checkHardDeleteThisEntity));
             var status = new StatusGenericHandler<int>();
-            if (checkHardDeleteThisEntity.SoftDeleteLevel == 0)
-                return status.AddError("This entry isn't soft deleted");
+            if (_config.GetSoftDeleteValue.Compile().Invoke(checkHardDeleteThisEntity) == 0)
+                return status.AddError($"This entry isn't {_config.TextSoftDeletedPastTense}.");
 
             //For reset you need to read every time because some of the collection might be soft deleted already
-            var walker = new CascadeWalker(_context, CascadeSoftDelWhatDoing.CheckWhatWillDelete, true);
+            var walker = new CascadeWalker<TInterface>(_context, _config, CascadeSoftDelWhatDoing.CheckWhatWillDelete, true);
             walker.WalkEntitiesSoftDelete(checkHardDeleteThisEntity, 1);
             return ReturnSuccessFullResult(CascadeSoftDelWhatDoing.CheckWhatWillDelete, walker.NumFound);
         }
@@ -163,15 +173,15 @@ namespace SoftDeleteServices.Concrete
         /// <param name="hardDeleteThisEntity">entity class with cascade soft delete interface. Mustn't be null</param>
         /// <returns>Returns a status. If no errors then Result contains the number of entities which were hard deleted, plus summary string in Message part</returns>
         public IStatusGeneric<int> HardDeleteSoftDeletedEntries<TEntity>(TEntity hardDeleteThisEntity)
-            where TEntity : class, ICascadeSoftDelete
+            where TEntity : class, TInterface
         {
             if (hardDeleteThisEntity == null) throw new ArgumentNullException(nameof(hardDeleteThisEntity));
             var status = new StatusGenericHandler<int>();
-            if (hardDeleteThisEntity.SoftDeleteLevel == 0)
-                return status.AddError("This entry isn't soft deleted");
+            if (_config.GetSoftDeleteValue.Compile().Invoke(hardDeleteThisEntity) == 0)
+                return status.AddError($"This entry isn't {_config.TextSoftDeletedPastTense}.");
 
             //For reset you need to read every time because some of the collection might be soft deleted already
-            var walker = new CascadeWalker(_context, CascadeSoftDelWhatDoing.HardDeleteSoftDeleted, true);
+            var walker = new CascadeWalker<TInterface>(_context, _config, CascadeSoftDelWhatDoing.HardDeleteSoftDeleted, true);
             walker.WalkEntitiesSoftDelete(hardDeleteThisEntity, 1);
             _context.SaveChanges();
             return ReturnSuccessFullResult(CascadeSoftDelWhatDoing.HardDeleteSoftDeleted, walker.NumFound);
@@ -184,13 +194,31 @@ namespace SoftDeleteServices.Concrete
         /// <typeparam name="TEntity"></typeparam>
         /// <returns></returns>
         public IQueryable<TEntity> GetSoftDeletedEntries<TEntity>()
-            where TEntity : class, ICascadeSoftDelete
+            where TEntity : class, TInterface
         {
-            return _context.Set<TEntity>().IgnoreQueryFilters().Where(x => x.SoftDeleteLevel == 1);
+            throw new NotImplementedException();
+            //var builder = new ExpressionBuilder<TInterface>(_config);
+            //return _context.Set<TEntity>().IgnoreQueryFilters().Where(builder.FilterToGetValueSingleSoftDeletedEntities<TEntity>(false));
         }
 
         //---------------------------------------------------------
         //private methods
+
+        public IStatusGeneric<int> CheckExecuteCascadeSoftDelete<TEntity>(
+            Func<TInterface, IStatusGeneric<int>> softDeleteAction, params object[] keyValues)
+            where TEntity : class, TInterface
+        {
+            var status = new StatusGenericHandler<int>();
+            var entity = _context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);
+            if (entity == null)
+            {
+                if (!_config.NotFoundIsNotAnError)
+                    status.AddError("Could not find the entry you ask for.");
+                return status;
+            }
+
+            return softDeleteAction(entity);
+        }
 
         private IStatusGeneric<int> ReturnSuccessFullResult(CascadeSoftDelWhatDoing whatDoing, int numFound)
         {

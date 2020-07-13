@@ -6,49 +6,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using DataLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using StatusGeneric;
 
 namespace SoftDeleteServices.Concrete.Internal
 {
     internal static class LoadEntityExtensions
     {
-        public static IStatusGeneric<int> CheckExecuteSoftDelete<TEntity>(
-            this DbContext context, bool notFoundAllowed,
-            Func<ISoftDelete, IStatusGeneric<int>> softDeleteAction, params object[] keyValues)
-            where TEntity : class, ISoftDelete
-        {
-            var status = new StatusGenericHandler<int>();
-            var entity = context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);
-            if (entity == null)
-            {
-                if (!notFoundAllowed)
-                    status.AddError("Could not find the entry you ask for.");
-                return status;
-            }
-
-            return softDeleteAction(entity);
-        }
-
-        public static IStatusGeneric<int> CheckExecuteCascadeSoftDelete<TEntity>(
-            this DbContext context, bool notFoundAllowed,
-            Func<ICascadeSoftDelete, IStatusGeneric<int>> softDeleteAction, params object[] keyValues)
-            where TEntity : class, ICascadeSoftDelete
-        {
-            var status = new StatusGenericHandler<int>();
-            var entity = context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);
-            if (entity == null)
-            {
-                if (!notFoundAllowed)
-                    status.AddError("Could not find the entry you ask for.");
-                return status;
-            }
-
-            return softDeleteAction(entity);
-        }
-
-        private static TEntity LoadEntityViaPrimaryKeys<TEntity>(this DbContext context, bool withIgnoreFilter, params object[] keyValues)
+        public static TEntity LoadEntityViaPrimaryKeys<TEntity>(this DbContext context, bool withIgnoreFilter, params object[] keyValues)
             where TEntity : class
         {
             var entityType = context.Model.FindEntityType(typeof(TEntity));
@@ -57,12 +21,22 @@ namespace SoftDeleteServices.Concrete.Internal
             if (entityType.IsOwned())
                 throw new ArgumentException($"The class {typeof(TEntity).Name} is an Owned class and can't be loaded on its own.");
             if (entityType.FindPrimaryKey() == null)
-                throw new ArgumentException($"The class {typeof(TEntity).Name} is read-only.");
+                throw new ArgumentException($"The class {typeof(TEntity).Name} has no primary key.");
 
             var keyProps = context.Model.FindEntityType(typeof(TEntity))
                 .FindPrimaryKey().Properties.Select(x => x.PropertyInfo).ToList();
             if(keyProps.Any(x => x == null))
                 throw new NotImplementedException("This library cannot handle primary keys in shadow properties or backing fields");
+
+            if (keyProps.Count != keyValues.Length)
+                throw new ArgumentException($"Mismatch in keys: your provided {keyValues.Length} key(s) and the entity has {keyProps.Count} key(s)", nameof(keyValues));
+
+            for (int i = 0; i < keyProps.Count; i++)
+            {
+                if (keyProps[i].PropertyType != keyValues[i].GetType())
+                    throw new ArgumentException($"Mismatch in keys: your provided key {i+1} (of {keyProps.Count}) is of type " +
+                                                $"{keyValues[i].GetType().Name} but entity key's type is {keyProps[i].PropertyType}", nameof(keyValues));
+            }
 
             var query = withIgnoreFilter
                 ? context.Set<TEntity>().IgnoreQueryFilters()
@@ -72,8 +46,6 @@ namespace SoftDeleteServices.Concrete.Internal
 
         private static Expression<Func<T, bool>> CreateFilter<T>(this IList<PropertyInfo> keyProperties, object[] keyValues)
         {
-
-
             if (keyProperties.Count != keyValues.Length)
                 throw new ArgumentException("The number of keys values provided does not match the number of keys in the entity class.");
 

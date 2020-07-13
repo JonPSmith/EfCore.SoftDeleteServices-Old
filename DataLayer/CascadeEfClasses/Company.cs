@@ -1,18 +1,18 @@
 ﻿// Copyright (c) 2020 Jon P Smith, GitHub: JonPSmith, web: http://www.thereformedprogrammer.net/
 // Licensed under MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using DataLayer.Interfaces;
 
-namespace DataLayer.EfClasses
+namespace DataLayer.CascadeEfClasses
 {
-    public class QuoteSoftCascade : ICascadeSoftDelete
+    public class Company : ICascadeSoftDelete
     {
-        public int QuoteSoftCascadeId { get; set; }
+        public int Id { get; set; }
 
-        public int CompanySoftCascade { get; set; }
+        public string CompanyName { get; set; }
 
-        public CompanySoftCascade BelongsTo { get; set; }
-
+        public HashSet<Quote> Quotes { get; set; }
         public byte SoftDeleteLevel { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -6,10 +6,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.0-preview.6.20312.4" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="EfClasses\" />
   </ItemGroup>
 
 </Project>
