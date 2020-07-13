@@ -4,9 +4,9 @@
 using System;
 using DataLayer.Interfaces;
 
-namespace DataLayer.EfClasses
+namespace DataLayer.SingleEfClasses
 {
-    public class OrderSingleSoftDelUserId : ISingleSoftDelete, IUserId
+    public class Order : ISingleSoftDelete, IUserId
     {
         public int Id { get; set; }
         public string OrderRef { get; set; }

@@ -4,11 +4,11 @@
 using System.Collections.Generic;
 using DataLayer.Interfaces;
 
-namespace DataLayer.EfClasses
+namespace DataLayer.SingleEfClasses
 {
-    public class BookSoftDel : ISingleSoftDelete
+    public class Book : ISingleSoftDelete
     {
-        public int BookSoftDelId { get; set; }
+        public int Id { get; set; }
         public string Title { get; set; }
         public bool SoftDeleted { get; set; }
 

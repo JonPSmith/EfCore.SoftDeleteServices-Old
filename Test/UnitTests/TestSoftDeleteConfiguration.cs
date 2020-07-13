@@ -5,9 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using DataLayer.EfClasses;
-using DataLayer.EfCode;
+using DataLayer.CascadeEfClasses;
+using DataLayer.CascadeEfCode;
 using DataLayer.Interfaces;
+using DataLayer.SingleEfClasses;
+using DataLayer.SingleEfCode;
 using Microsoft.EntityFrameworkCore;
 using SoftDeleteServices.Concrete.Internal;
 using SoftDeleteServices.Configuration;
@@ -33,15 +35,15 @@ namespace Test.UnitTests
         {
             //SETUP
             var currentUser = Guid.NewGuid();
-            var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
-            using (var context = new SoftDelDbContext(options, currentUser))
+            var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
+            using (var context = new SingleSoftDelDbContext(options, currentUser))
             {
                 context.Database.EnsureCreated();
-                var order1 = new OrderSingleSoftDelUserId
+                var order1 = new Order
                     { OrderRef = "Cur user Order, soft del", SoftDeleted = true, UserId = currentUser };
-                var order2 = new OrderSingleSoftDelUserId
+                var order2 = new Order
                     { OrderRef = "Cur user Order", SoftDeleted = false, UserId = currentUser };
-                var order3 = new OrderSingleSoftDelUserId
+                var order3 = new Order
                     { OrderRef = "Diff user Order", SoftDeleted = true, UserId = Guid.NewGuid() };
                 context.AddRange(order1, order2, order3);
                 context.SaveChanges();
@@ -50,7 +52,7 @@ namespace Test.UnitTests
 
                 //ATTEMPT
                 var query = context.Orders.IgnoreQueryFilters().Where(
-                        config.FilterToGetValueSingleSoftDeletedEntities<OrderSingleSoftDelUserId, ISingleSoftDelete>())
+                        config.FilterToGetValueSingleSoftDeletedEntities<Order, ISingleSoftDelete>())
                     .Select(x => x.OrderRef);
                 var result = query.ToList();
 
@@ -64,15 +66,15 @@ namespace Test.UnitTests
         {
             //SETUP
             var currentUser = Guid.NewGuid();
-            var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
-            using (var context = new SoftDelDbContext(options, currentUser))
+            var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
+            using (var context = new SingleSoftDelDbContext(options, currentUser))
             {
                 context.Database.EnsureCreated();
-                var order1 = new OrderSingleSoftDelUserId
+                var order1 = new Order
                     { OrderRef = "Cur user Order, soft del", SoftDeleted = true, UserId = currentUser };
-                var order2 = new OrderSingleSoftDelUserId
+                var order2 = new Order
                     { OrderRef = "Cur user Order", SoftDeleted = false, UserId = currentUser };
-                var order3 = new OrderSingleSoftDelUserId
+                var order3 = new Order
                     { OrderRef = "Diff user Order", SoftDeleted = true, UserId = Guid.NewGuid() };
                 context.AddRange(order1, order2, order3);
                 context.SaveChanges();
@@ -81,7 +83,7 @@ namespace Test.UnitTests
 
                 //ATTEMPT
                 var query = context.Orders.IgnoreQueryFilters().Where(
-                        config.FilterToGetValueSingleSoftDeletedEntities<OrderSingleSoftDelUserId,ISingleSoftDelete>())
+                        config.FilterToGetValueSingleSoftDeletedEntities<Order,ISingleSoftDelete>())
                     .Select(x => x.OrderRef);
                 var result = query.ToList();
 
@@ -95,11 +97,11 @@ namespace Test.UnitTests
         public void TestCanFilterUsingAccessorOk()
         {
             //SETUP
-            var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
-            using (var context = new SoftDelDbContext(options))
+            var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
+            using (var context = new SingleSoftDelDbContext(options))
             {
                 context.Database.EnsureCreated();
-                var book = new BookSoftDel { Title = "test", SoftDeleted = true};
+                var book = new Book { Title = "test", SoftDeleted = true};
                 context.Add(book);
                 context.SaveChanges();
 
@@ -108,7 +110,7 @@ namespace Test.UnitTests
                 //ATTEMPT
                 var getSoftValue = config.GetSoftDeleteValue.Compile().Invoke(book);
                 getSoftValue.ShouldBeTrue();
-                var query = context.Books.IgnoreQueryFilters().Where(config.GetSoftDeleteValue).Cast<BookSoftDel>()
+                var query = context.Books.IgnoreQueryFilters().Where(config.GetSoftDeleteValue).Cast<Book>()
                     .Select(x => x.Title.Length);
                 var result = query.ToList();
 
@@ -124,11 +126,11 @@ namespace Test.UnitTests
         public void TestConvertFuncToQueryOk()
         {
             //SETUP
-            var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
-            using (var context = new SoftDelDbContext(options))
+            var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
+            using (var context = new CascadeSoftDelDbContext(options))
             {
                 context.Database.EnsureCreated();
-                var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
+                var ceo = Employee.SeedEmployeeSoftDel(context);
                 ceo.SoftDeleteLevel = 1;
                 ceo.WorksFromMe.First().SoftDeleteLevel = 1;
                 context.SaveChanges();
@@ -143,7 +145,7 @@ namespace Test.UnitTests
 
                //ATTEMPT
                var query = context.Employees.IgnoreQueryFilters()
-                   .Where(dynamicFilter).Cast<EmployeeSoftCascade>()
+                   .Where(dynamicFilter).Cast<Employee>()
                    .Select(x => x.Name);
                 var result = query.ToList();
 

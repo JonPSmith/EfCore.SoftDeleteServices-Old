@@ -62,8 +62,9 @@ namespace SoftDeleteServices.Concrete
         /// This will single soft delete the entity
         /// </summary>
         /// <param name="softDeleteThisEntity">Mustn't be null</param>
+        /// <param name="callSaveChanges">Defaults to calling SaveChanges. If set to false, then you must call SaveChanges</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error</returns>
-        public IStatusGeneric<int> SetSoftDelete(TInterface softDeleteThisEntity)
+        public IStatusGeneric<int> SetSoftDelete(TInterface softDeleteThisEntity, bool callSaveChanges = true)
         {
             if (softDeleteThisEntity == null) throw new ArgumentNullException(nameof(softDeleteThisEntity));
 
@@ -78,7 +79,8 @@ namespace SoftDeleteServices.Concrete
                 return status.AddError($"This entry is already {_config.TextSoftDeletedPastTense}.");
 
             _config.SetSoftDeleteValue(softDeleteThisEntity, true);
-            _context.SaveChanges();
+            if (callSaveChanges)
+                _context.SaveChanges();
 
             status.Message = $"Successfully {_config.TextSoftDeletedPastTense} this entry";
             status.SetResult(1);        //one changed
@@ -89,8 +91,9 @@ namespace SoftDeleteServices.Concrete
         /// This resets the single soft delete flag so that entity is now visible
         /// </summary>
         /// <param name="resetSoftDeleteThisEntity">Mustn't be null</param>
+        /// <param name="callSaveChanges">Defaults to calling SaveChanges. If set to false, then you must call SaveChanges</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if errors</returns>
-        public IStatusGeneric<int> ResetSoftDelete(TInterface resetSoftDeleteThisEntity)
+        public IStatusGeneric<int> ResetSoftDelete(TInterface resetSoftDeleteThisEntity, bool callSaveChanges = true)
         {
             if (resetSoftDeleteThisEntity == null) throw new ArgumentNullException(nameof(resetSoftDeleteThisEntity));
 
@@ -99,7 +102,8 @@ namespace SoftDeleteServices.Concrete
                 return status.AddError($"This entry isn't {_config.TextSoftDeletedPastTense}.");
 
             _config.SetSoftDeleteValue(resetSoftDeleteThisEntity, false);
-            _context.SaveChanges();
+            if (callSaveChanges)
+                _context.SaveChanges();
 
             status.Message = $"Successfully {_config.TextResetSoftDelete} on this entry";
             status.SetResult(1);        //one changed
@@ -122,7 +126,7 @@ namespace SoftDeleteServices.Concrete
         //private methods
 
         public IStatusGeneric<int> CheckExecuteSoftDelete<TEntity>(
-            Func<TInterface, IStatusGeneric<int>> softDeleteAction, params object[] keyValues)
+            Func<TInterface, bool, IStatusGeneric<int>> softDeleteAction, params object[] keyValues)
             where TEntity : class, TInterface
         {
             var status = new StatusGenericHandler<int>();
@@ -134,7 +138,7 @@ namespace SoftDeleteServices.Concrete
                 return status;
             }
 
-            return softDeleteAction(entity);
+            return softDeleteAction(entity, true);
         }
     }
 }

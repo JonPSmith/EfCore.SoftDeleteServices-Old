@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2020 Jon P Smith, GitHub: JonPSmith, web: http://www.thereformedprogrammer.net/
 // Licensed under MIT license. See License.txt in the project root for license information.
 
-using DataLayer.EfCode;
 using DataLayer.Interfaces;
+using DataLayer.SingleEfCode;
 using SoftDeleteServices.Configuration;
 
 namespace Test.ExampleConfigs
@@ -10,7 +10,7 @@ namespace Test.ExampleConfigs
     public class ConfigISoftDeleteWithUserId : SoftDeleteConfiguration<ISingleSoftDelete, bool>
     {
 
-        public ConfigISoftDeleteWithUserId(SoftDelDbContext content)
+        public ConfigISoftDeleteWithUserId(SingleSoftDelDbContext content)
         {
             GetSoftDeleteValue = entity => entity.SoftDeleted;
             SetSoftDeleteValue = (entity, value) => { entity.SoftDeleted = value; };

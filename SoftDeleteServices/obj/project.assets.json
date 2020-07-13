@@ -271,19 +271,6 @@
         "runtime": {
           "lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll": {}
         }
-      },
-      "DataLayer/1.0.0": {
-        "type": "project",
-        "framework": ".NETStandard,Version=v2.1",
-        "dependencies": {
-          "Microsoft.EntityFrameworkCore": "5.0.0-preview.6.20312.4"
-        },
-        "compile": {
-          "bin/placeholder/DataLayer.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/DataLayer.dll": {}
-        }
       }
     }
   },
@@ -791,16 +778,10 @@
         "useSharedDesignerContext.txt",
         "version.txt"
       ]
-    },
-    "DataLayer/1.0.0": {
-      "type": "project",
-      "path": "../DataLayer/DataLayer.csproj",
-      "msbuildProject": "../DataLayer/DataLayer.csproj"
     }
   },
   "projectFileDependencyGroups": {
     ".NETStandard,Version=v2.1": [
-      "DataLayer >= 1.0.0",
       "GenericServices.StatusGeneric >= 1.1.0",
       "Microsoft.EntityFrameworkCore >= 5.0.0-preview.6.20312.4",
       "Microsoft.EntityFrameworkCore.Relational >= 5.0.0-preview.6.20312.4"
@@ -831,11 +812,7 @@
       },
       "frameworks": {
         "netstandard2.1": {
-          "projectReferences": {
-            "C:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\DataLayer\\DataLayer.csproj": {
-              "projectPath": "C:\\Users\\JonPSmith\\source\\repos\\EfCore.SoftDeleteServices\\DataLayer\\DataLayer.csproj"
-            }
-          }
+          "projectReferences": {}
         }
       },
       "warningProperties": {

@@ -2,8 +2,8 @@
 // Licensed under MIT license. See License.txt in the project root for license information.
 
 using System.Linq;
-using DataLayer.EfClasses;
-using DataLayer.EfCode;
+using DataLayer.CascadeEfClasses;
+using DataLayer.CascadeEfCode;
 using DataLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using SoftDeleteServices.Concrete;
@@ -31,17 +31,17 @@ namespace Test.UnitTests
         public void TestCheckCascadeSoftOfPreviousDeleteInfo()
         {
             //SETUP
-            var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
-            using (var context = new SoftDelDbContext(options))
+            var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
+            using (var context = new CascadeSoftDelDbContext(options))
             {
                 context.Database.EnsureCreated();
-                var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
+                var ceo = Employee.SeedEmployeeSoftDel(context);
 
                 var config = new ConfigICascadeDelete();
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
                 var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
                 numSoftDeleted.ShouldEqual(7 + 6);
-                EmployeeSoftCascade.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
+                Employee.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
 
                 //ATTEMPT
                 var status = service.CheckCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"));
@@ -56,11 +56,11 @@ namespace Test.UnitTests
         public void TestCheckCascadeSoftDeleteNoSoftDeleteInfo()
         {
             //SETUP
-            var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
-            using (var context = new SoftDelDbContext(options))
+            var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
+            using (var context = new CascadeSoftDelDbContext(options))
             {
                 context.Database.EnsureCreated();
-                var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
+                var ceo = Employee.SeedEmployeeSoftDel(context);
 
                 var config = new ConfigICascadeDelete();
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
@@ -82,17 +82,17 @@ namespace Test.UnitTests
         public void TestHardDeleteCascadeSoftOfPreviousDeleteInfo()
         {
             //SETUP
-            var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
-            using (var context = new SoftDelDbContext(options))
+            var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
+            using (var context = new CascadeSoftDelDbContext(options))
             {
                 context.Database.EnsureCreated();
-                var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
+                var ceo = Employee.SeedEmployeeSoftDel(context);
 
                 var config = new ConfigICascadeDelete();
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
                 var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
                 numSoftDeleted.ShouldEqual(7 + 6);
-                EmployeeSoftCascade.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
+                Employee.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
 
                 //ATTEMPT
                 var status = service.HardDeleteSoftDeletedEntries(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"));
@@ -109,11 +109,11 @@ namespace Test.UnitTests
         public void TestHardDeleteCascadeSoftDeleteNoSoftDeleteInfo()
         {
             //SETUP
-            var options = SqliteInMemory.CreateOptions<SoftDelDbContext>();
-            using (var context = new SoftDelDbContext(options))
+            var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
+            using (var context = new CascadeSoftDelDbContext(options))
             {
                 context.Database.EnsureCreated();
-                var ceo = EmployeeSoftCascade.SeedEmployeeSoftDel(context);
+                var ceo = Employee.SeedEmployeeSoftDel(context);
 
                 var config = new ConfigICascadeDelete();
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
