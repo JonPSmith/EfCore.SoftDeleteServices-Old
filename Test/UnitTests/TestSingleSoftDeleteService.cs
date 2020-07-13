@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Linq;
 using DataLayer.Interfaces;
 using DataLayer.SingleEfClasses;
@@ -51,7 +50,7 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var book = AddBookWithReviewToDb(context);
 
-                var config = new ConfigISoftDeleteWithUserId(context);
+                var config = new ConfigSoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -78,7 +77,7 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var book = AddBookWithReviewToDb(context);
 
-                var config = new ConfigISoftDeleteWithUserId(context);
+                var config = new ConfigSoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -105,7 +104,7 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var book = AddBookWithReviewToDb(context);
 
-                var config = new ConfigISoftDeleteWithUserId(context);
+                var config = new ConfigSoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -126,7 +125,7 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var book = AddBookWithReviewToDb(context);
 
-                var config = new ConfigISoftDeleteWithUserId(context);
+                var config = new ConfigSoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -146,7 +145,7 @@ namespace Test.UnitTests
             {
                 context.Database.EnsureCreated();
 
-                var config = new ConfigISoftDeleteWithUserId(context);
+                var config = new ConfigSoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -168,7 +167,7 @@ namespace Test.UnitTests
             {
                 context.Database.EnsureCreated();
 
-                var config = new ConfigISoftDeleteWithUserId(context) {NotFoundIsNotAnError = true};
+                var config = new ConfigSoftDeleteWithUserId(context) {NotFoundIsNotAnError = true};
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -180,6 +179,71 @@ namespace Test.UnitTests
             }
         }
 
+        //----------------------------------------
+        //DDD Set
+
+        [Fact]
+        public void TestSoftDeleteServiceDddSetSoftDeleteOk()
+        {
+            //SETUP
+            var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
+            using (var context = new SingleSoftDelDbContext(options))
+            {
+                context.Database.EnsureCreated();
+                var bookDdd = new BookDDD("Test");
+                context.Add(bookDdd);
+                context.SaveChanges();
+
+                var config = new ConfigSoftDeleteDDD();
+                var service = new SingleSoftDeleteService<ISingleSoftDeletedDDD>(context, config);
+
+                //ATTEMPT
+                var status = service.SetSoftDelete(bookDdd);
+
+                //VERIFY
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(1);
+            }
+            using (var context = new SingleSoftDelDbContext(options))
+            {
+                context.BookDdds.Count().ShouldEqual(0);
+                context.BookDdds.IgnoreQueryFilters().Count().ShouldEqual(1);
+            }
+        }
+
+        [Fact]
+        public void TestSoftDeleteServiceSetSoftDddDeleteViaKeysOk()
+        {
+            //SETUP
+            var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
+            using (var context = new SingleSoftDelDbContext(options))
+            {
+                context.Database.EnsureCreated();
+                var bookDdd = new BookDDD("Test");
+                context.Add(bookDdd);
+                context.SaveChanges();
+
+                var config = new ConfigSoftDeleteDDD();
+                var service = new SingleSoftDeleteService<ISingleSoftDeletedDDD>(context, config);
+
+                //ATTEMPT
+                var status = service.SetSoftDeleteViaKeys<BookDDD>(bookDdd.Id);
+
+                //VERIFY
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(1);
+            }
+            using (var context = new SingleSoftDelDbContext(options))
+            {
+                context.BookDdds.Count().ShouldEqual(0);
+                context.BookDdds.IgnoreQueryFilters().Count().ShouldEqual(1);
+            }
+        }
+
+
+        //----------------------------------------
+        //RESET
+
         [Fact]
         public void TestSoftDeleteServiceResetSoftDeleteOk()
         {
@@ -190,7 +254,7 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 var book = AddBookWithReviewToDb(context);
 
-                var config = new ConfigISoftDeleteWithUserId(context);
+                var config = new ConfigSoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
                 service.SetSoftDelete(book);
 
@@ -209,6 +273,36 @@ namespace Test.UnitTests
         }
 
         [Fact]
+        public void TestSoftDeleteServiceDddResetSoftDeleteOk()
+        {
+            //SETUP
+            var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
+            using (var context = new SingleSoftDelDbContext(options))
+            {
+                context.Database.EnsureCreated();
+                context.Database.EnsureCreated();
+                var bookDdd = new BookDDD("Test");
+                context.Add(bookDdd);
+                context.SaveChanges();
+
+                var config = new ConfigSoftDeleteDDD();
+                var service = new SingleSoftDeleteService<ISingleSoftDeletedDDD>(context, config);
+                service.SetSoftDelete(bookDdd);
+
+                //ATTEMPT
+                var status = service.ResetSoftDelete(bookDdd);
+
+                //VERIFY
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(1);
+            }
+            using (var context = new SingleSoftDelDbContext(options))
+            {
+                context.BookDdds.Count().ShouldEqual(1);
+                context.BookDdds.IgnoreQueryFilters().Count().ShouldEqual(1);
+            }
+        }
+        [Fact]
         public void TestSoftDeleteServiceResetSoftDeleteViaKeysOk()
         {
             //SETUP
@@ -219,7 +313,7 @@ namespace Test.UnitTests
                 context.Database.EnsureCreated();
                 bookId = AddBookWithReviewToDb(context).Id;
 
-                var config = new ConfigISoftDeleteWithUserId(context);
+                var config = new ConfigSoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
                 var status1 = service.SetSoftDeleteViaKeys<Book>(bookId);
                 status1.IsValid.ShouldBeTrue(status1.GetAllErrors());
@@ -238,6 +332,8 @@ namespace Test.UnitTests
             }
         }
 
+
+
         [Fact]
         public void TestSoftDeleteServiceGetSoftDeletedEntriesOk()
         {
@@ -249,7 +345,7 @@ namespace Test.UnitTests
                 var book1 = AddBookWithReviewToDb(context, "test1");
                 var book2 = AddBookWithReviewToDb(context, "test2");
 
-                var config = new ConfigISoftDeleteWithUserId(context);
+                var config = new ConfigSoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
                 var status = service.SetSoftDelete(book1);
                 status.IsValid.ShouldBeTrue(status.GetAllErrors());
@@ -257,7 +353,7 @@ namespace Test.UnitTests
             }
             using (var context = new SingleSoftDelDbContext(options))
             {
-                var config = new ConfigISoftDeleteWithUserId(context);
+                var config = new ConfigSoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -292,7 +388,7 @@ namespace Test.UnitTests
             }
             using (var context = new SingleSoftDelDbContext(options, currentUser))
             {
-                var config = new ConfigISoftDeleteWithUserId(context);
+                var config = new ConfigSoftDeleteWithUserId(context);
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -310,7 +406,7 @@ namespace Test.UnitTests
         private static Book AddBookWithReviewToDb(SingleSoftDelDbContext context, string title = "test")
         {
             var book = new Book
-                {Title = title, Reviews = new List<ReviewSoftDel> {new ReviewSoftDel {NumStars = 1}}};
+                {Title = title, Reviews = new List<Review> {new Review {NumStars = 1}}};
             context.Add(book);
             context.SaveChanges();
             return book;

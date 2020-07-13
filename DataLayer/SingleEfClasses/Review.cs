@@ -3,7 +3,7 @@
 
 namespace DataLayer.SingleEfClasses
 {
-    public class ReviewSoftDel
+    public class Review
     {
         public int Id { get; set; }
         public int NumStars { get; set; }

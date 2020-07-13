@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace DataLayer.SingleEfCode
 {
-    public enum SingleQueryFilterTypes { SingleSoftDelete, SingleSoftDeleteAndUserId }    
+    public enum SingleQueryFilterTypes { SingleSoftDelete, SingleSoftDeleteAndUserId, SingleSoftDeleteDdd }    
 
     public static class SingleQueryFilterExtensions                            
     {
@@ -38,6 +38,13 @@ namespace DataLayer.SingleEfCode
             where TEntity : class, IUserId, ISingleSoftDelete
         {
             Expression<Func<TEntity, bool>> filter = x => x.UserId == userIdProvider.UserId && !x.SoftDeleted;
+            return filter;
+        }
+
+        private static LambdaExpression GetSingleSoftDeleteDddFilter<TEntity>(IUserId userIdProvider)
+            where TEntity : class, ISingleSoftDeletedDDD
+        {
+            Expression<Func<TEntity, bool>> filter = x => !x.SoftDeleted;
             return filter;
         }
 

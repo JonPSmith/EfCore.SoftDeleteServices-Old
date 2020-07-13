@@ -6,10 +6,10 @@ using SoftDeleteServices.Configuration;
 
 namespace Test.ExampleConfigs
 {
-    public class ConfigICascadeDelete : SoftDeleteConfiguration<ICascadeSoftDelete, byte>
+    public class ConfigCascadeDelete : SoftDeleteConfiguration<ICascadeSoftDelete, byte>
     {
 
-        public ConfigICascadeDelete()
+        public ConfigCascadeDelete()
         {
             GetSoftDeleteValue = entity => entity.SoftDeleteLevel;
             SetSoftDeleteValue = (entity, value) => { entity.SoftDeleteLevel = value; };

@@ -2,19 +2,17 @@
 // Licensed under MIT license. See License.txt in the project root for license information.
 
 using DataLayer.Interfaces;
-using DataLayer.SingleEfCode;
 using SoftDeleteServices.Configuration;
 
 namespace Test.ExampleConfigs
 {
-    public class ConfigISoftDeleteWithUserId : SoftDeleteConfiguration<ISingleSoftDelete, bool>
+    public class ConfigSoftDeleteDDD : SoftDeleteConfiguration<ISingleSoftDeletedDDD, bool>
     {
 
-        public ConfigISoftDeleteWithUserId(SingleSoftDelDbContext content)
+        public ConfigSoftDeleteDDD()
         {
             GetSoftDeleteValue = entity => entity.SoftDeleted;
-            SetSoftDeleteValue = (entity, value) => { entity.SoftDeleted = value; };
-            OtherFilters.Add(typeof(IUserId), entity => ((IUserId)entity).UserId == content.UserId);
+            SetSoftDeleteValue = (entity, value) => entity.ChangeSoftDeleted(value);
         }
     }
 }

@@ -48,7 +48,7 @@ namespace Test.UnitTests
                 context.AddRange(order1, order2, order3);
                 context.SaveChanges();
 
-                var config = new ConfigISoftDeleteWithUserId(context);
+                var config = new ConfigSoftDeleteWithUserId(context);
 
                 //ATTEMPT
                 var query = context.Orders.IgnoreQueryFilters().Where(
@@ -79,7 +79,7 @@ namespace Test.UnitTests
                 context.AddRange(order1, order2, order3);
                 context.SaveChanges();
 
-                var config = new ConfigISoftDeleteWithUserId(context);
+                var config = new ConfigSoftDeleteWithUserId(context);
 
                 //ATTEMPT
                 var query = context.Orders.IgnoreQueryFilters().Where(
@@ -105,7 +105,7 @@ namespace Test.UnitTests
                 context.Add(book);
                 context.SaveChanges();
 
-                var config = new ConfigISoftDeleteWithUserId(context);
+                var config = new ConfigSoftDeleteWithUserId(context);
 
                 //ATTEMPT
                 var getSoftValue = config.GetSoftDeleteValue.Compile().Invoke(book);

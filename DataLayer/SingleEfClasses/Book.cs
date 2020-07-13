@@ -12,6 +12,6 @@ namespace DataLayer.SingleEfClasses
         public string Title { get; set; }
         public bool SoftDeleted { get; set; }
 
-        public ICollection<ReviewSoftDel> Reviews { get; set; }
+        public ICollection<Review> Reviews { get; set; }
     }
 }

@@ -25,6 +25,8 @@ namespace DataLayer.SingleEfCode
         public DbSet<Book> Books { get; set; }
         public DbSet<Order> Orders { get; set; }
 
+        public DbSet<BookDDD> BookDdds { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,6 +40,10 @@ namespace DataLayer.SingleEfCode
                         entityType.SetSingleQueryFilter(SingleQueryFilterTypes.SingleSoftDeleteAndUserId, this);
                     else
                         entityType.SetSingleQueryFilter(SingleQueryFilterTypes.SingleSoftDelete, this);
+                }
+                if (typeof(ISingleSoftDeletedDDD).IsAssignableFrom(entityType.ClrType))
+                {
+                    entityType.SetSingleQueryFilter(SingleQueryFilterTypes.SingleSoftDeleteDdd, this);
                 }
             }
         }
