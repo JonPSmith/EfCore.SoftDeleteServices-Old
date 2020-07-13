@@ -2,9 +2,9 @@
 
 ## Release Notes
 
-The code is currently a prototype and not ready to be a library.
+The code is not quite ready to be a library - see lists below.
 
-However it is clean enough that you could cop the code and use in your application. NOTE: the interface most likely will change before it becomes a library
+However it is clean enough that you could copy the code and use in your application. NOTE: the interface most likely will change before it becomes a library
 
 ## Things needed to turn it into a library
 
@@ -22,11 +22,10 @@ However it is clean enough that you could cop the code and use in your applicati
 
 ### Cascade soft delete (80% done)
 
-- **TODO**: Handle other query filter parts (hard)
 - **TODO**: Change `CascadeWalker` to return the loaded relationships, with filtering, so that it works with properties, backing fields and shadow properties (hard)
-- DONE:: ResetSoftDeleteViaKeys should filter out other query filters so only valid soft deleted entries reset (moderate)
-- DONE:: Move `ReadEveryTime` to config
-- **TODO**: Think about using SQL code to improve performance (very hard)
+- DONE: ResetSoftDeleteViaKeys should filter out other query filters so only valid soft deleted entries reset (moderate)
+- DONE: Move `ReadEveryTime` to config
+- DONE: Handle other query filter parts (hard)
 - DONE: Add versions of the methods that find the starting entity via primary keys (easy)
 - DONE: Use GenericServices's approach to not found (moderate)
 - DONE: Allow user to provide their own `ICascadeSoftDelete` interface (moderate)
@@ -37,3 +36,4 @@ However it is clean enough that you could cop the code and use in your applicati
 
 * Example of using shadow properties for cascade delete
 * Documentation
+* Think about using SQL code to improve cascade soft delete performance (very hard)
