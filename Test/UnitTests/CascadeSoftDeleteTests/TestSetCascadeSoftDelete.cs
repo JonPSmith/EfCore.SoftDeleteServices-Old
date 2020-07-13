@@ -177,12 +177,15 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.Database.EnsureCreated();
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDelete
+                {
+                    ReadEveryTime = readEveryTime
+                };
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT
                 logs.Clear();
-                var status = service.SetCascadeSoftDelete(ceo.WorksFromMe.First(), readEveryTime);
+                var status = service.SetCascadeSoftDelete(ceo.WorksFromMe.First());
 
                 //VERIFY
                 status.IsValid.ShouldBeTrue(status.GetAllErrors());
@@ -315,12 +318,15 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
             }
             using (var context = new CascadeSoftDelDbContext(options))
             {
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDelete
+                {
+                    ReadEveryTime = false
+                };
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT
                 logs.Clear();
-                var status = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO"), readEveryTime);
+                var status = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO"));
 
                 //VERIFY
                 status.IsValid.ShouldBeTrue(status.GetAllErrors());
