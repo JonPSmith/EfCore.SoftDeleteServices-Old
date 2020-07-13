@@ -9,7 +9,7 @@ namespace DataLayer.CascadeEfClasses
     public class EmployeeContract : ICascadeSoftDelete
     {
         [Key]
-        public int EmployeeSoftCascadeId { get; set; }
+        public int EmployeeId { get; set; }
 
         public string ContractText { get; set; }
 

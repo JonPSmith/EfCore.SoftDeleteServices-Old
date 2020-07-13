@@ -39,7 +39,7 @@ namespace DataLayer.CascadeEfCode
             modelBuilder.Entity<Employee>()
                 .HasOne(x => x.Contract)
                 .WithOne()
-                .HasForeignKey<EmployeeContract>(x => x.EmployeeSoftCascadeId)
+                .HasForeignKey<EmployeeContract>(x => x.EmployeeId)
                 .OnDelete(DeleteBehavior.ClientCascade);
 
             //This automatically configures the query filters

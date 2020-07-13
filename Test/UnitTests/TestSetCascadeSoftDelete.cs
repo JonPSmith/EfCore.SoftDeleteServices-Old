@@ -165,8 +165,8 @@ namespace Test.UnitTests
         }
 
         [Theory]
-        [InlineData(false, 4)]
-        [InlineData(true, 7)]
+        [InlineData(false, 3)]
+        [InlineData(true, 6)]
         public void TestCascadeSoftDeleteEmployeeSoftDelWithLoggingOk(bool readEveryTime, int selectCount)
         {
             //SETUP
@@ -324,7 +324,7 @@ namespace Test.UnitTests
 
                 //VERIFY
                 status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                logs.Count(x => _selectMatchRegex.IsMatch(x)).ShouldEqual(7+7);
+                logs.Count(x => _selectMatchRegex.IsMatch(x)).ShouldEqual(7);
                 status.Result.ShouldEqual(7+6);
                 context.Employees.Count().ShouldEqual(4);
                 context.Employees.IgnoreQueryFilters().Count().ShouldEqual(11);
