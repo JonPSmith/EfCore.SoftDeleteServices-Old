@@ -209,7 +209,7 @@ namespace SoftDeleteServices.Concrete
             where TEntity : class, TInterface
         {
             var status = new StatusGenericHandler<int>();
-            var entity = _context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);
+            var entity = _context.LoadEntityViaPrimaryKeys<TEntity>(_config.OtherFilters, keyValues);
             if (entity == null)
             {
                 if (!_config.NotFoundIsNotAnError)

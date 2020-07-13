@@ -109,6 +109,85 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         }
 
         [Fact]
+        public void TestHardDeleteViaKeysWithUserIdOk()
+        {
+            //SETUP
+            var currentUser = Guid.NewGuid();
+            int bookId;
+            var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
+            using (var context = new SingleSoftDelDbContext(options))
+            {
+                context.Database.EnsureCreated();
+                var order1 = new Order
+                    { OrderRef = "Cur user Order, soft del", SoftDeleted = true, UserId = currentUser };
+                var order2 = new Order
+                    { OrderRef = "Cur user Order", SoftDeleted = false, UserId = currentUser };
+                var order3 = new Order
+                    { OrderRef = "Diff user Order", SoftDeleted = true, UserId = Guid.NewGuid() };
+                var order4 = new Order
+                    { OrderRef = "Diff user Order", SoftDeleted = false, UserId = Guid.NewGuid() };
+                context.AddRange(order1, order2, order3, order4);
+                context.SaveChanges();
+                bookId = order1.Id;
+            }
+            using (var context = new SingleSoftDelDbContext(options, currentUser))
+            {
+                var config = new ConfigSoftDeleteWithUserId(context);
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+
+                //ATTEMPT
+                var status = service.ResetSoftDeleteViaKeys<Order>(bookId);
+
+                //VERIFY
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(1);
+                context.Orders.IgnoreQueryFilters().Count().ShouldEqual(4);
+                context.Orders.Count().ShouldEqual(2);
+            }
+        }
+
+        [Fact]
+        public void TestHardDeleteViaKeysWithWrongUserIdBad()
+        {
+            //SETUP
+            var currentUser = Guid.NewGuid();
+            int bookId;
+            var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
+            using (var context = new SingleSoftDelDbContext(options))
+            {
+                context.Database.EnsureCreated();
+                var order1 = new Order
+                    { OrderRef = "Cur user Order, soft del", SoftDeleted = true, UserId = currentUser };
+                var order2 = new Order
+                    { OrderRef = "Cur user Order", SoftDeleted = false, UserId = currentUser };
+                var order3 = new Order
+                    { OrderRef = "Diff user Order", SoftDeleted = true, UserId = Guid.NewGuid() };
+                var order4 = new Order
+                    { OrderRef = "Diff user Order", SoftDeleted = false, UserId = Guid.NewGuid() };
+                context.AddRange(order1, order2, order3, order4);
+                context.SaveChanges();
+                bookId = order3.Id;
+            }
+            using (var context = new SingleSoftDelDbContext(options, currentUser))
+            {
+                var config = new ConfigSoftDeleteWithUserId(context);
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+
+                //ATTEMPT
+                var status = service.ResetSoftDeleteViaKeys<Order>(bookId);
+
+                //VERIFY
+                status.IsValid.ShouldBeFalse();
+                status.GetAllErrors().ShouldEqual("Could not find the entry you ask for.");
+                context.Orders.IgnoreQueryFilters().Count().ShouldEqual(4);
+                context.Orders.Count().ShouldEqual(1);
+            }
+        }
+
+        //-------------------------------------------
+        //GetSoftDeletedEntries 
+
+        [Fact]
         public void TestSoftDeleteServiceGetSoftDeletedEntriesOk()
         {
             //SETUP
@@ -141,7 +220,6 @@ namespace Test.UnitTests.SingleSoftDeleteTests
             }
         }
 
-
         [Fact]
         public void TestSoftDeleteServiceGetSoftDeletedEntriesWithUserIdOk()
         {
@@ -157,7 +235,9 @@ namespace Test.UnitTests.SingleSoftDeleteTests
                     { OrderRef = "Cur user Order", SoftDeleted = false, UserId = currentUser };
                 var order3 = new Order
                     { OrderRef = "Diff user Order", SoftDeleted = true, UserId = Guid.NewGuid() };
-                context.AddRange(order1, order2, order3);
+                var order4 = new Order
+                    { OrderRef = "Diff user Order", SoftDeleted = false, UserId = Guid.NewGuid() };
+                context.AddRange(order1, order2, order3, order4);
                 context.SaveChanges();
             }
             using (var context = new SingleSoftDelDbContext(options, currentUser))
@@ -170,8 +250,8 @@ namespace Test.UnitTests.SingleSoftDeleteTests
 
                 //VERIFY
                 orders.Count.ShouldEqual(1);
-                orders.Single().OrderRef.ShouldEqual("Cur user Order, soft del");
-                context.Orders.IgnoreQueryFilters().Count().ShouldEqual(3);
+                orders.Single(x => x.UserId == currentUser).OrderRef.ShouldEqual("Cur user Order, soft del");
+                context.Orders.IgnoreQueryFilters().Count().ShouldEqual(4);
                 var all = context.Orders.IgnoreQueryFilters().ToList();
                 context.Orders.Count().ShouldEqual(1);
             }

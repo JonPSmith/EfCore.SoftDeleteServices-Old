@@ -11,6 +11,10 @@ namespace SoftDeleteServices.Configuration
         where TInterface : class
         where TYourValue : struct
     {
+        /// <summary>
+        /// This should contain a LINQ query that returns the soft delete property value - MUST work in EF Core query
+        /// e.g. 
+        /// </summary>
         public Expression<Func<TInterface, TYourValue>> GetSoftDeleteValue { get; set; }
         public Action<TInterface, TYourValue> SetSoftDeleteValue { get; set; }
 
@@ -30,5 +34,9 @@ namespace SoftDeleteServices.Configuration
         public string TextHardDeletedPastTense { get; set; } = "hard deleted";
 
         public string TextResetSoftDelete { get; set; } = "reset the soft delete";
+
+        //------------------------------------------------
+        //Cascade only properties
+        public bool ReadEveryTime { get; set; } = true;
     }
 }
