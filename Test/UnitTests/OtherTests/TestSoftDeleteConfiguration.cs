@@ -2,7 +2,6 @@
 // Licensed under MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using DataLayer.CascadeEfClasses;
@@ -12,14 +11,13 @@ using DataLayer.SingleEfClasses;
 using DataLayer.SingleEfCode;
 using Microsoft.EntityFrameworkCore;
 using SoftDeleteServices.Concrete.Internal;
-using SoftDeleteServices.Configuration;
 using Test.ExampleConfigs;
 using TestSupport.EfHelpers;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Extensions.AssertExtensions;
 
-namespace Test.UnitTests
+namespace Test.UnitTests.OtherTests
 {
     public class TestSoftDeleteConfiguration
     {

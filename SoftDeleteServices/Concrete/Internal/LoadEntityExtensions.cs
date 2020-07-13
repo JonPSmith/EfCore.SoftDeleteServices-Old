@@ -12,7 +12,9 @@ namespace SoftDeleteServices.Concrete.Internal
 {
     internal static class LoadEntityExtensions
     {
-        public static TEntity LoadEntityViaPrimaryKeys<TEntity>(this DbContext context, bool withIgnoreFilter, params object[] keyValues)
+        public static TEntity LoadEntityViaPrimaryKeys<TEntity>(this DbContext context,
+            Dictionary<Type, Expression<Func<object, bool>>> otherFilters,
+            params object[] keyValues)
             where TEntity : class
         {
             var entityType = context.Model.FindEntityType(typeof(TEntity));
@@ -38,9 +40,10 @@ namespace SoftDeleteServices.Concrete.Internal
                                                 $"{keyValues[i].GetType().Name} but entity key's type is {keyProps[i].PropertyType}", nameof(keyValues));
             }
 
-            var query = withIgnoreFilter
+            var filterOutInvalidEntities = otherFilters.FormOtherFiltersOnly<TEntity>();
+            var query = filterOutInvalidEntities == null
                 ? context.Set<TEntity>().IgnoreQueryFilters()
-                : context.Set<TEntity>();
+                : context.Set<TEntity>().IgnoreQueryFilters().Where(filterOutInvalidEntities);
             return query.SingleOrDefault(CreateFilter<TEntity>(keyProps, keyValues));
         }
 

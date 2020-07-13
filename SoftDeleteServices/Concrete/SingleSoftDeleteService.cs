@@ -59,6 +59,17 @@ namespace SoftDeleteServices.Concrete
         }
 
         /// <summary>
+        /// This finds the entity using its primary key(s) and then hard deletes it as long as the soft delete flag is set
+        /// </summary>
+        /// <param name="keyValues">primary key values</param>
+        /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error of Not Found and notFoundAllowed is true</returns>
+        public IStatusGeneric<int> HardDeleteViaKeys<TEntity>(params object[] keyValues)
+            where TEntity : class, TInterface
+        {
+            return CheckExecuteSoftDelete<TEntity>(HardDeleteSoftDeletedEntry, keyValues);
+        }
+
+        /// <summary>
         /// This will single soft delete the entity
         /// </summary>
         /// <param name="softDeleteThisEntity">Mustn't be null</param>
@@ -110,6 +121,23 @@ namespace SoftDeleteServices.Concrete
             return status;
         }
 
+        public IStatusGeneric<int> HardDeleteSoftDeletedEntry<TEntity>(TEntity hardDeleteThisEntity, bool callSaveChanges = true)
+            where TEntity : class, TInterface
+        {
+            if (hardDeleteThisEntity == null) throw new ArgumentNullException(nameof(hardDeleteThisEntity));
+            var status = new StatusGenericHandler<int>();
+            if (!_config.GetSoftDeleteValue.Compile().Invoke(hardDeleteThisEntity))
+                return status.AddError($"This entry isn't {_config.TextSoftDeletedPastTense}.");
+
+            _context.Remove(hardDeleteThisEntity);
+            if (callSaveChanges)
+                _context.SaveChanges();
+
+            status.Message = $"Successfully {_config.TextHardDeletedPastTense} this entry";
+            status.SetResult(1);        //one changed
+            return status;
+        }
+
         /// <summary>
         /// This returns the soft deleted entities of type TEntity
         /// If you set up the OtherFilters property in the config then it will apply all the appropriate query filter so you only see the ones you should
@@ -130,7 +158,7 @@ namespace SoftDeleteServices.Concrete
             where TEntity : class, TInterface
         {
             var status = new StatusGenericHandler<int>();
-            var entity = _context.LoadEntityViaPrimaryKeys<TEntity>(true, keyValues);
+            var entity = _context.LoadEntityViaPrimaryKeys<TEntity>(_config.OtherFilters, keyValues);
             if (entity == null)
             {
                 if (!_config.NotFoundIsNotAnError)
