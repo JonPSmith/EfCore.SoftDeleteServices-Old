@@ -39,11 +39,11 @@ namespace DataLayer.SingleEfCode
                     if (typeof(IUserId).IsAssignableFrom(entityType.ClrType))
                         entityType.SetSingleQueryFilter(SingleQueryFilterTypes.SingleSoftDeleteAndUserId, this);
                     else
-                        entityType.SetSingleQueryFilter(SingleQueryFilterTypes.SingleSoftDelete, this);
+                        entityType.SetSingleQueryFilter(SingleQueryFilterTypes.SingleSoftDelete);
                 }
                 if (typeof(ISingleSoftDeletedDDD).IsAssignableFrom(entityType.ClrType))
                 {
-                    entityType.SetSingleQueryFilter(SingleQueryFilterTypes.SingleSoftDeleteDdd, this);
+                    entityType.SetSingleQueryFilter(SingleQueryFilterTypes.SingleSoftDelete);
                 }
             }
         }

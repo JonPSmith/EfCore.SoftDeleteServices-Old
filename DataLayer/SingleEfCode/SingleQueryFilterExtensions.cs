@@ -15,7 +15,7 @@ namespace DataLayer.SingleEfCode
     public static class SingleQueryFilterExtensions                            
     {
         public static void SetSingleQueryFilter(this IMutableEntityType entityData,  
-            SingleQueryFilterTypes queryFilterType, IUserId userIdProvider)                    
+            SingleQueryFilterTypes queryFilterType, IUserId userIdProvider = null)                    
         {
             var methodName = $"Get{queryFilterType}Filter";        
             var methodToCall = typeof(SingleQueryFilterExtensions)
