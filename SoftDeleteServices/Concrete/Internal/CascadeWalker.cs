@@ -130,8 +130,8 @@ namespace SoftDeleteServices.Concrete.Internal
         private IEnumerable LoadNavigationCollection(object principalInstance, INavigation navigation, byte cascadeLevel)
         {
             byte levelToLookFor = _whatDoing == CascadeSoftDelWhatDoing.SoftDelete
-                ? (byte)0             //if soft deleting then look for un-deleted entries
-                : cascadeLevel;       //otherwise look for a given level
+                ? (byte)0                     //if soft deleting then look for un-deleted entries
+                : (byte)(cascadeLevel + 1);   //otherwise look for next level up
 
             var navValueType = navigation.PropertyInfo.PropertyType;
             var innerType = navValueType.GetGenericArguments().Single();
@@ -158,8 +158,8 @@ namespace SoftDeleteServices.Concrete.Internal
         private object LoadNavigationSingleton(object principalInstance, INavigation navigation, byte cascadeLevel)
         {
             byte levelToLookFor = _whatDoing == CascadeSoftDelWhatDoing.SoftDelete
-                ? (byte)0             //if soft deleting then look for un-deleted entries
-                : cascadeLevel;       //otherwise look for a given level
+                ? (byte)0                     //if soft deleting then look for un-deleted entries
+                : (byte)(cascadeLevel + 1);   //otherwise look for next level up
 
             //for everything else we need to load the singleton with a IgnoreQueryFilters method
             var navValueType = navigation.PropertyInfo.PropertyType;

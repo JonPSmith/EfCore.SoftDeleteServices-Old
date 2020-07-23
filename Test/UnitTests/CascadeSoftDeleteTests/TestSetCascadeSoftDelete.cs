@@ -112,6 +112,29 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
         }
 
         [Fact]
+        public void TestGetSoftDeletedEntriesEmployeeSoftDeletedOk()
+        {
+            //SETUP
+            var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
+            using (var context = new CascadeSoftDelDbContext(options))
+            {
+                context.Database.EnsureCreated();
+                var ceo = Employee.SeedEmployeeSoftDel(context);
+
+                var config = new ConfigCascadeDeleteWithUserId(context);
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+                service.SetCascadeSoftDelete(ceo.WorksFromMe.First()).IsValid.ShouldBeTrue();
+
+                //ATTEMPT
+                var softDeleted = service.GetSoftDeletedEntries<Employee>().ToList();
+
+                //VERIFY
+                softDeleted.Count.ShouldEqual(1);
+                softDeleted.Single().Name.ShouldEqual(ceo.WorksFromMe.First().Name);
+            }
+        }
+
+        [Fact]
         public void TestCascadeSoftDeleteEmployeeSoftDelOneToOneOk()
         {
             //SETUP
@@ -386,6 +409,29 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
             }
         }
 
+        [Fact]
+        public void TestGetSoftDeletedEntriesCompanyOk()
+        {
+            //SETUP
+            var userId = Guid.NewGuid();
+            var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
+            using (var context = new CascadeSoftDelDbContext(options, userId))
+            {
+                context.Database.EnsureCreated();
+                var company = Company.SeedCompanyWithQuotes(context, userId);
+
+                var config = new ConfigCascadeDeleteWithUserId(context);
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+                var status = service.SetCascadeSoftDelete(company);
+
+                //ATTEMPT
+                var softDeleted = service.GetSoftDeletedEntries<Company>().ToList();
+
+                //VERIFY
+                softDeleted.Count.ShouldEqual(1);
+                softDeleted.Single().CompanyName.ShouldEqual(company.CompanyName);
+            }
+        }
         [Fact]
         public void TestCascadeDeleteCompanySomeQuotesDifferentUserIdOk()
         {
