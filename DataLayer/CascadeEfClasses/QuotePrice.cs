@@ -6,19 +6,13 @@ using DataLayer.Interfaces;
 
 namespace DataLayer.CascadeEfClasses
 {
-    public class Quote : ICascadeSoftDelete, IUserId
+    public class QuotePrice : ICascadeSoftDelete, IUserId
     {
         public int Id { get; set; }
 
-        public string Name { get; set; }
+        public int QuoteId { get; set; }
 
-        //-------------------------------------------------
-        // relationships
-
-        public int CompanyId { get; set; }
-        public Company BelongsTo { get; set; }
-
-        public QuotePrice PriceInfo { get; set; }
+        public int Price { get; set; }
 
         public byte SoftDeleteLevel { get; set; }
         public Guid UserId { get; set; }

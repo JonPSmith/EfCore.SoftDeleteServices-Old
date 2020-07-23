@@ -97,7 +97,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.Database.EnsureCreated();
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDeleteWithUserId(context);
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -121,7 +121,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.Database.EnsureCreated();
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDeleteWithUserId(context);
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -142,7 +142,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.Database.EnsureCreated();
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDeleteWithUserId(context);
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -177,7 +177,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.Database.EnsureCreated();
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDelete
+                var config = new ConfigCascadeDeleteWithUserId(context)
                 {
                     ReadEveryTime = readEveryTime
                 };
@@ -213,7 +213,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.Database.EnsureCreated();
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDeleteWithUserId(context);
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
                 
                 var preNumSoftDeleted = service.SetCascadeSoftDelete(ceo.WorksFromMe.First().WorksFromMe.First()).Result;
@@ -249,7 +249,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.Database.EnsureCreated();
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDeleteWithUserId(context);
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -287,7 +287,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 var devEntry = context.Employees.Single(x => x.Name == "dev1a");
                 devEntry.WorksFromMe = new List<Employee>{ devEntry.Manager.Manager};
 
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDeleteWithUserId(context);
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -318,7 +318,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
             }
             using (var context = new CascadeSoftDelDbContext(options))
             {
-                var config = new ConfigCascadeDelete
+                var config = new ConfigCascadeDeleteWithUserId(context)
                 {
                     ReadEveryTime = readEveryTime
                 };
@@ -339,6 +339,106 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
             }
         }
 
+        //------------------------------------------------------------
+        //Check UserId Query Filter 
+
+        [Fact]
+        public void TestSeedCompanyWithQuotesOk()
+        {
+            //SETUP
+            var userId = Guid.NewGuid();
+            var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
+            using (var context = new CascadeSoftDelDbContext(options, userId))
+            {
+                context.Database.EnsureCreated();
+
+                //ATTEMPT
+                var company = Company.SeedCompanyWithQuotes(context, userId);
+
+                //VERIFY
+                context.Companies.Count().ShouldEqual(1);
+                context.Quotes.Count().ShouldEqual(4);
+                context.Set<QuotePrice>().Count().ShouldEqual(4);
+            }
+        }
+
+        [Fact]
+        public void TestCascadeDeleteCompanyOk()
+        {
+            //SETUP
+            var userId = Guid.NewGuid();
+            var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
+            using (var context = new CascadeSoftDelDbContext(options, userId))
+            {
+                context.Database.EnsureCreated();
+                var company = Company.SeedCompanyWithQuotes(context, userId);
+
+                var config = new ConfigCascadeDeleteWithUserId(context);
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+
+                //ATTEMPT
+                var status = service.SetCascadeSoftDelete(company);
+
+                //VERIFY
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(1 + 4 + 4);
+                status.Message.ShouldEqual("You have soft deleted an entity and its 8 dependents");
+            }
+        }
+
+        [Fact]
+        public void TestCascadeDeleteCompanySomeQuotesDifferentUserIdOk()
+        {
+            //SETUP
+            var userId = Guid.NewGuid();
+            var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
+            using (var context = new CascadeSoftDelDbContext(options, userId))
+            {
+                context.Database.EnsureCreated();
+                var company = Company.SeedCompanyWithQuotes(context, userId);
+                company.Quotes.First().UserId = Guid.NewGuid();
+                context.SaveChanges();
+
+                var config = new ConfigCascadeDeleteWithUserId(context);
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+
+                //ATTEMPT
+                var status = service.SetCascadeSoftDelete(company);
+
+                //VERIFY
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(1 + 3 + 3);
+                status.Message.ShouldEqual("You have soft deleted an entity and its 6 dependents");
+                context.Quotes.IgnoreQueryFilters().Count(x => x.SoftDeleteLevel != 0).ShouldEqual(3);
+            }
+        }
+
+        [Fact]
+        public void TestCascadeDeleteCompanySomeQuotePriceDifferentUserIdOk()
+        {
+            //SETUP
+            var userId = Guid.NewGuid();
+            var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
+            using (var context = new CascadeSoftDelDbContext(options, userId))
+            {
+                context.Database.EnsureCreated();
+                var company = Company.SeedCompanyWithQuotes(context, userId);
+                company.Quotes.First().PriceInfo.UserId = Guid.NewGuid();
+                context.SaveChanges();
+
+                var config = new ConfigCascadeDeleteWithUserId(context);
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+
+                //ATTEMPT
+                var status = service.SetCascadeSoftDelete(company);
+
+                //VERIFY
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(1 + 4 + 3);
+                status.Message.ShouldEqual("You have soft deleted an entity and its 7 dependents");
+                context.Set<QuotePrice>().IgnoreQueryFilters().Count(x => x.SoftDeleteLevel != 0).ShouldEqual(3);
+            }
+        }
 
     }
 }

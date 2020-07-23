@@ -12,13 +12,13 @@ namespace DataLayer.CascadeEfCode
 {
     public enum CascadeQueryFilterTypes { CascadeSoftDelete, CascadeSoftDeleteAndUserId, CascadeAndSingleAndUserId }
 
-    public static class CascadeQueryFilterAutoExtensions
+    public static class CascadeQueryFilterExtensions
     {
         public static void SetCascadeQueryFilter(this IMutableEntityType entityData,
             CascadeQueryFilterTypes queryFilterType, IUserId userIdProvider)
         {
             var methodName = $"Get{queryFilterType}Filter";
-            var methodToCall = typeof(CascadeQueryFilterAutoExtensions)
+            var methodToCall = typeof(CascadeQueryFilterExtensions)
                 .GetMethod(methodName,
                     BindingFlags.NonPublic | BindingFlags.Static)
                 .MakeGenericMethod(entityData.ClrType);
@@ -26,7 +26,6 @@ namespace DataLayer.CascadeEfCode
                 .Invoke(null, new object[] { userIdProvider });
             entityData.SetQueryFilter((LambdaExpression)filter);
         }
-
 
         private static LambdaExpression GetCascadeSoftDeleteFilter<TEntity>(IUserId userIdProvider)
             where TEntity : class, ICascadeSoftDelete

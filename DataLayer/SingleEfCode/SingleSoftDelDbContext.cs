@@ -43,7 +43,7 @@ namespace DataLayer.SingleEfCode
                 }
                 if (typeof(ISingleSoftDeletedDDD).IsAssignableFrom(entityType.ClrType))
                 {
-                    entityType.SetSingleQueryFilter(SingleQueryFilterTypes.SingleSoftDelete);
+                    entityType.SetSingleQueryFilter(SingleQueryFilterTypes.SingleSoftDeleteDdd);
                 }
             }
         }

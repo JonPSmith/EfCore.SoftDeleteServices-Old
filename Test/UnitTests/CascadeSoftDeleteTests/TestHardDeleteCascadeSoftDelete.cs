@@ -37,7 +37,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.Database.EnsureCreated();
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDeleteWithUserId(context);
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
                 var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
                 numSoftDeleted.ShouldEqual(7 + 6);
@@ -62,7 +62,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.Database.EnsureCreated();
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDeleteWithUserId(context);
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT
@@ -88,7 +88,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.Database.EnsureCreated();
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDeleteWithUserId(context);
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
                 var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
                 numSoftDeleted.ShouldEqual(7 + 6);
@@ -115,7 +115,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.Database.EnsureCreated();
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDeleteWithUserId(context);
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT

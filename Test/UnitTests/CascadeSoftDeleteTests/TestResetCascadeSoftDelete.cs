@@ -37,7 +37,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.Database.EnsureCreated();
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDeleteWithUserId(context);
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
@@ -65,7 +65,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.Database.EnsureCreated();
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDeleteWithUserId(context);
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
@@ -92,7 +92,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.Database.EnsureCreated();
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDeleteWithUserId(context);
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
@@ -120,7 +120,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.Database.EnsureCreated();
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDeleteWithUserId(context);
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 var numInnerSoftDelete = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "ProjectManager1")).Result;
@@ -154,7 +154,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.Database.EnsureCreated();
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDeleteWithUserId(context);
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
@@ -163,7 +163,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
 
             using (var context = new CascadeSoftDelDbContext(options))
             {
-                var config = new ConfigCascadeDelete();
+                var config = new ConfigCascadeDeleteWithUserId(context);
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
                 //ATTEMPT

@@ -42,6 +42,17 @@ namespace DataLayer.CascadeEfCode
                 .HasForeignKey<EmployeeContract>(x => x.EmployeeId)
                 .OnDelete(DeleteBehavior.ClientCascade);
 
+            modelBuilder.Entity<Company>()
+                .HasMany(x => x.Quotes)
+                .WithOne(x => x.BelongsTo)
+                .OnDelete(DeleteBehavior.ClientCascade);
+
+            modelBuilder.Entity<Quote>()
+                .HasOne(x => x.PriceInfo)
+                .WithOne()
+                .HasForeignKey<QuotePrice>(x => x.QuoteId)
+                .OnDelete(DeleteBehavior.ClientCascade);
+
             //This automatically configures the query filters
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

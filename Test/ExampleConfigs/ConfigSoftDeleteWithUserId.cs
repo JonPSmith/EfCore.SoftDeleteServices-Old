@@ -10,11 +10,11 @@ namespace Test.ExampleConfigs
     public class ConfigSoftDeleteWithUserId : SoftDeleteConfiguration<ISingleSoftDelete, bool>
     {
 
-        public ConfigSoftDeleteWithUserId(SingleSoftDelDbContext content)
+        public ConfigSoftDeleteWithUserId(SingleSoftDelDbContext context)
         {
             GetSoftDeleteValue = entity => entity.SoftDeleted;
             SetSoftDeleteValue = (entity, value) => { entity.SoftDeleted = value; };
-            OtherFilters.Add(typeof(IUserId), entity => ((IUserId)entity).UserId == content.UserId);
+            OtherFilters.Add(typeof(IUserId), entity => ((IUserId)entity).UserId == context.UserId);
         }
     }
 }

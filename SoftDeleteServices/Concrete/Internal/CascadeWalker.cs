@@ -138,18 +138,20 @@ namespace SoftDeleteServices.Concrete.Internal
             var genericHelperType =
                 typeof(GenericCollectionLoader<>).MakeGenericType(typeof(TInterface), innerType);
 
-            dynamic loader = Activator.CreateInstance(genericHelperType, _context, principalInstance, navigation.PropertyInfo, levelToLookFor);
+            dynamic loader = Activator.CreateInstance(genericHelperType, _context, _config, principalInstance, navigation.PropertyInfo, levelToLookFor);
             return loader.FilteredEntities;
         }
 
-        private  class GenericCollectionLoader<TEntity> where TEntity : class, TInterface
+        private class GenericCollectionLoader<TEntity> where TEntity : class, TInterface
         {
             public IEnumerable FilteredEntities { get; }
 
-            public GenericCollectionLoader(DbContext context, object principalInstance, PropertyInfo propertyInfo, byte levelToLookFor)
+            public GenericCollectionLoader(DbContext context, SoftDeleteConfiguration<TInterface, byte> config, 
+                object principalInstance, PropertyInfo propertyInfo, byte levelToLookFor)
             {
                 var query = context.Entry(principalInstance).Collection(propertyInfo.Name).Query();
-                FilteredEntities = query.Provider.CreateQuery<TEntity>(query.Expression).IgnoreQueryFilters().ToList();
+                FilteredEntities = query.Provider.CreateQuery<TEntity>(query.Expression).IgnoreQueryFilters()
+                    .Where(config.FilterToGetValueCascadeSoftDeletedEntities<TEntity, TInterface>(levelToLookFor)).ToList();
             }
         }
 
@@ -164,7 +166,7 @@ namespace SoftDeleteServices.Concrete.Internal
             var genericHelperType =
                 typeof(GenericSingletonLoader<>).MakeGenericType(typeof(TInterface), navValueType);
 
-            dynamic loader = Activator.CreateInstance(genericHelperType, _context, principalInstance, navigation.PropertyInfo, levelToLookFor);
+            dynamic loader = Activator.CreateInstance(genericHelperType, _context, _config, principalInstance, navigation.PropertyInfo, levelToLookFor);
             return loader.FilteredSingleton;
         }
 
@@ -172,10 +174,12 @@ namespace SoftDeleteServices.Concrete.Internal
         {
             public object FilteredSingleton;
 
-            public GenericSingletonLoader(DbContext context, object principalInstance, PropertyInfo propertyInfo, byte levelToLookFor)
+            public GenericSingletonLoader(DbContext context, SoftDeleteConfiguration<TInterface, byte> config, 
+                object principalInstance, PropertyInfo propertyInfo, byte levelToLookFor)
             {
                 var query = context.Entry(principalInstance).Reference(propertyInfo.Name).Query();
-                FilteredSingleton = query.Provider.CreateQuery<TEntity>(query.Expression).IgnoreQueryFilters().SingleOrDefault();
+                FilteredSingleton = query.Provider.CreateQuery<TEntity>(query.Expression).IgnoreQueryFilters()
+                    .Where(config.FilterToGetValueCascadeSoftDeletedEntities<TEntity, TInterface>(levelToLookFor)).SingleOrDefault();
             }
         }
 
