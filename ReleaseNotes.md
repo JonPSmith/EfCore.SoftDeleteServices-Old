@@ -21,7 +21,7 @@ However it is clean enough that you could copy the code and use in your applicat
 - DONE: GetSoftDeletedEntries contains other query filters so only valid soft deleted  entries are shown (hard)
 - DONE: Allowing multiple soft delete, e.g. archive & soft delete
 
-### Cascade soft delete (80% done)
+### Cascade soft delete (90% done)
 
 - **TODO**: Provide Async versions
 - **TODO**: Have separate configuration class
