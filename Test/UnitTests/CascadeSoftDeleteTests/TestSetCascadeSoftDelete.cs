@@ -320,7 +320,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
             {
                 var config = new ConfigCascadeDelete
                 {
-                    ReadEveryTime = false
+                    ReadEveryTime = readEveryTime
                 };
                 var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 

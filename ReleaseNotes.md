@@ -22,6 +22,7 @@ However it is clean enough that you could copy the code and use in your applicat
 
 ### Cascade soft delete (80% done)
 
+- **TODO**: Have separate configuration class
 - **TODO**: Change `CascadeWalker` to return the loaded relationships, with filtering, so that it works with properties, backing fields and shadow properties (hard)
 - DONE: ResetSoftDeleteViaKeys should filter out other query filters so only valid soft deleted entries reset (moderate)
 - DONE: Move `ReadEveryTime` to config

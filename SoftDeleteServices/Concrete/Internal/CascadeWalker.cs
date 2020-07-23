@@ -54,6 +54,7 @@ namespace SoftDeleteServices.Concrete.Internal
             foreach (var navigation in principalNavs)
             {
                 if (navigation.PropertyInfo == null)
+                    //This could be changed by enhancing the navigation.PropertyInfo.GetValue(principalInstance);
                     throw new NotImplementedException("Currently only works with navigation links that are properties");
 
                 //It loads the current navigational value so that we can limit the number of database selects if the data is already loaded
@@ -62,8 +63,7 @@ namespace SoftDeleteServices.Concrete.Internal
                 {
                     if (_readEveryTime || navValue == null)
                     {
-                        LoadNavigationCollection(principalInstance, navigation);
-                        navValue = navigation.PropertyInfo.GetValue(principalInstance);
+                        navValue = LoadNavigationCollection(principalInstance, navigation, cascadeLevel);
                     }
                     if (navValue == null)
                         return; //no relationship
@@ -76,8 +76,7 @@ namespace SoftDeleteServices.Concrete.Internal
                 {
                     if (_readEveryTime || navValue == null)
                     {
-                        LoadNavigationSingleton(principalInstance, navigation);
-                        navValue = navigation.PropertyInfo.GetValue(principalInstance);
+                        navValue = LoadNavigationSingleton(principalInstance, navigation, cascadeLevel);
                     }
                     if (navValue == null)
                         return; //no relationship
@@ -128,56 +127,55 @@ namespace SoftDeleteServices.Concrete.Internal
             return false;
         }
 
-        private void LoadNavigationCollection(object principalInstance, INavigation navigation)
+        private IEnumerable LoadNavigationCollection(object principalInstance, INavigation navigation, byte cascadeLevel)
         {
-            if (_whatDoing == CascadeSoftDelWhatDoing.SoftDelete)
-                //For setting we can simple load it, as we don't want to whatDoing anything that is already whatDoing
-                _context.Entry(principalInstance).Collection(navigation.PropertyInfo.Name).Load();
-            else
-            {
-                //for everything else we need to load the collection with a IgnoreQueryFilters method
-                var navValueType = navigation.PropertyInfo.PropertyType;
-                var innerType = navValueType.GetGenericArguments().Single();
-                var genericHelperType =
-                    typeof(GenericCollectionLoader<>).MakeGenericType(typeof(TInterface), innerType);
+            byte levelToLookFor = _whatDoing == CascadeSoftDelWhatDoing.SoftDelete
+                ? (byte)0             //if soft deleting then look for un-deleted entries
+                : cascadeLevel;       //otherwise look for a given level
 
-                Activator.CreateInstance(genericHelperType, _context, principalInstance, navigation.PropertyInfo);
-            }
+            var navValueType = navigation.PropertyInfo.PropertyType;
+            var innerType = navValueType.GetGenericArguments().Single();
+            var genericHelperType =
+                typeof(GenericCollectionLoader<>).MakeGenericType(typeof(TInterface), innerType);
+
+            dynamic loader = Activator.CreateInstance(genericHelperType, _context, principalInstance, navigation.PropertyInfo, levelToLookFor);
+            return loader.FilteredEntities;
         }
 
         private  class GenericCollectionLoader<TEntity> where TEntity : class, TInterface
         {
-            public GenericCollectionLoader(DbContext context, object principalInstance, PropertyInfo propertyInfo)
+            public IEnumerable FilteredEntities { get; }
+
+            public GenericCollectionLoader(DbContext context, object principalInstance, PropertyInfo propertyInfo, byte levelToLookFor)
             {
                 var query = context.Entry(principalInstance).Collection(propertyInfo.Name).Query();
-                var collection = query.Provider.CreateQuery<TEntity>(query.Expression).IgnoreQueryFilters().ToList();
-                propertyInfo.SetValue(principalInstance, collection);
+                FilteredEntities = query.Provider.CreateQuery<TEntity>(query.Expression).IgnoreQueryFilters().ToList();
             }
         }
 
-        private void LoadNavigationSingleton(object principalInstance, INavigation navigation)
+        private object LoadNavigationSingleton(object principalInstance, INavigation navigation, byte cascadeLevel)
         {
-            if (_whatDoing == CascadeSoftDelWhatDoing.SoftDelete)
-                //For setting we can simple load it, as we don't want to whatDoing anything that is already whatDoing
-                _context.Entry(principalInstance).Reference(navigation.PropertyInfo.Name).Load();
-            else
-            {
-                //for everything else we need to load the singleton with a IgnoreQueryFilters method
-                var navValueType = navigation.PropertyInfo.PropertyType;
-                var genericHelperType =
-                    typeof(GenericSingletonLoader<>).MakeGenericType(typeof(TInterface), navValueType);
+            byte levelToLookFor = _whatDoing == CascadeSoftDelWhatDoing.SoftDelete
+                ? (byte)0             //if soft deleting then look for un-deleted entries
+                : cascadeLevel;       //otherwise look for a given level
 
-                Activator.CreateInstance(genericHelperType, _context, principalInstance, navigation.PropertyInfo);
-            }
+            //for everything else we need to load the singleton with a IgnoreQueryFilters method
+            var navValueType = navigation.PropertyInfo.PropertyType;
+            var genericHelperType =
+                typeof(GenericSingletonLoader<>).MakeGenericType(typeof(TInterface), navValueType);
+
+            dynamic loader = Activator.CreateInstance(genericHelperType, _context, principalInstance, navigation.PropertyInfo, levelToLookFor);
+            return loader.FilteredSingleton;
         }
 
         private class GenericSingletonLoader<TEntity> where TEntity : class, TInterface
         {
-            public GenericSingletonLoader(DbContext context, object principalInstance, PropertyInfo propertyInfo)
+            public object FilteredSingleton;
+
+            public GenericSingletonLoader(DbContext context, object principalInstance, PropertyInfo propertyInfo, byte levelToLookFor)
             {
                 var query = context.Entry(principalInstance).Reference(propertyInfo.Name).Query();
-                var singleton = query.Provider.CreateQuery<TEntity>(query.Expression).IgnoreQueryFilters().SingleOrDefault();
-                propertyInfo.SetValue(principalInstance, singleton);
+                FilteredSingleton = query.Provider.CreateQuery<TEntity>(query.Expression).IgnoreQueryFilters().SingleOrDefault();
             }
         }
 
