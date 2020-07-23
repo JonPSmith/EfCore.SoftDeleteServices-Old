@@ -11,6 +11,7 @@ However it is clean enough that you could copy the code and use in your applicat
 ### Single soft delete (95% done)
 
 - **TODO**: Provide Async versions
+- **TODO**: Have separate configuration class
 - **TODO**: Need more unit tests
     - Check `callSaveChanges` usage
 - DONE: ResetSoftDeleteViaKeys should filter out other query filters so only valid soft deleted entries reset
@@ -22,8 +23,10 @@ However it is clean enough that you could copy the code and use in your applicat
 
 ### Cascade soft delete (80% done)
 
+- **TODO**: Provide Async versions
 - **TODO**: Have separate configuration class
-- **TODO**: Change `CascadeWalker` to return the loaded relationships, with filtering, so that it works with properties, backing fields and shadow properties (hard)
+- **TODO**: Change so that it works with navigational properties, backing fields and shadow properties (easy)
+- DONE: Change `CascadeWalker` to return the loaded relationships, with filtering,  (hard)
 - DONE: ResetSoftDeleteViaKeys should filter out other query filters so only valid soft deleted entries reset (moderate)
 - DONE: Move `ReadEveryTime` to config
 - DONE: Handle other query filter parts (hard)
