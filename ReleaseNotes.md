@@ -25,6 +25,10 @@ However it is clean enough that you could copy the code and use in your applicat
 
 - **TODO**: Provide Async versions
 - **TODO**: Have separate configuration class
+   - Add setting for DeleteBehaviour checks
+- **TODO**: Need more unit tests
+    - Check `callSaveChanges` usage
+    - Check for UserId with hard delete
 - **TODO**: Change so that it works with navigational properties, backing fields and shadow properties (easy)
 - DONE: Change `CascadeWalker` to return the loaded relationships, with filtering,  (hard)
 - DONE: ResetSoftDeleteViaKeys should filter out other query filters so only valid soft deleted entries reset (moderate)
