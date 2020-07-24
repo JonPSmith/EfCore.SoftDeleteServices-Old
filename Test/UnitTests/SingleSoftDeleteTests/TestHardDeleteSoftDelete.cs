@@ -53,6 +53,39 @@ namespace Test.UnitTests.SingleSoftDeleteTests
             }
         }
 
+        [Fact]
+        public void TestHardDeleteSoftDeletedEntryNoCallSaveChangesOk()
+        {
+            //SETUP
+            var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
+            using (var context = new SingleSoftDelDbContext(options))
+            {
+                context.Database.EnsureCreated();
+                var book = context.AddBookWithReviewToDb();
+
+                var config = new ConfigSoftDeleteWithUserId(context);
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+                var status = service.SetSoftDelete(book);
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+            }
+            using (var context = new SingleSoftDelDbContext(options))
+            {
+                var config = new ConfigSoftDeleteWithUserId(context);
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+
+                //ATTEMPT
+                var status = service.HardDeleteSoftDeletedEntry(context.Books.IgnoreQueryFilters().Single(), false);
+                context.Books.IgnoreQueryFilters().Count().ShouldEqual(1);
+                context.SaveChanges();
+                context.Books.IgnoreQueryFilters().Count().ShouldEqual(0);
+
+                //VERIFY
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(1);
+
+            }
+        }
+
 
         [Fact]
         public void TestHardDeleteViaKeysOk()

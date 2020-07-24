@@ -49,6 +49,33 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         }
 
         [Fact]
+        public void TestSoftDeleteServiceResetSoftDeleteNoCallSaveChangesOk()
+        {
+            //SETUP
+            var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
+            using (var context = new SingleSoftDelDbContext(options))
+            {
+                context.Database.EnsureCreated();
+                var book = context.AddBookWithReviewToDb();
+
+                var config = new ConfigSoftDeleteWithUserId(context);
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+                service.SetSoftDelete(book);
+
+                //ATTEMPT
+                var status = service.ResetSoftDelete(book, false);
+                context.Books.Count().ShouldEqual(0);
+                context.SaveChanges();
+                context.Books.Count().ShouldEqual(1);
+
+                //VERIFY
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(1);
+                context.Books.IgnoreQueryFilters().Count().ShouldEqual(1);
+            }
+        }
+
+        [Fact]
         public void TestSoftDeleteServiceDddResetSoftDeleteOk()
         {
             //SETUP
@@ -78,6 +105,7 @@ namespace Test.UnitTests.SingleSoftDeleteTests
                 context.BookDdds.IgnoreQueryFilters().Count().ShouldEqual(1);
             }
         }
+
         [Fact]
         public void TestSoftDeleteServiceResetSoftDeleteViaKeysOk()
         {

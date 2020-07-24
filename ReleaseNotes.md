@@ -12,8 +12,6 @@ However it is clean enough that you could copy the code and use in your applicat
 
 - **TODO**: Provide Async versions
 - **TODO**: Have separate configuration class
-- **TODO**: Need more unit tests
-    - Check `callSaveChanges` usage
 - DONE: ResetSoftDeleteViaKeys should filter out other query filters so only valid soft deleted entries reset
 - DONE: Add HardDeleteSoftDeletedEntries to single soft delete
 - DONE: Allow user to provide their own `ISoftDelete` interface (moderate)

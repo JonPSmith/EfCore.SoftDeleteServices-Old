@@ -69,6 +69,32 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         }
 
         [Fact]
+        public void TestSoftDeleteServiceSetSoftDeleteStopCallSaveChangesOk()
+        {
+            //SETUP
+            var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
+            using (var context = new SingleSoftDelDbContext(options))
+            {
+                context.Database.EnsureCreated();
+                var book = context.AddBookWithReviewToDb();
+
+                var config = new ConfigSoftDeleteWithUserId(context);
+                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+
+                //ATTEMPT
+                var status = service.SetSoftDelete(book, false);
+                context.Books.Count().ShouldEqual(1);
+                context.SaveChanges();
+                context.Books.Count().ShouldEqual(0);
+
+                //VERIFY
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(1);
+                context.Books.IgnoreQueryFilters().Count().ShouldEqual(1);
+            }
+        }
+
+        [Fact]
         public void TestSoftDeleteServiceSetSoftDeleteViaKeysOk()
         {
             //SETUP
