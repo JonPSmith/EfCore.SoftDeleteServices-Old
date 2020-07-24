@@ -10,7 +10,7 @@ However it is clean enough that you could copy the code and use in your applicat
 
 ### Single soft delete (95% done)
 
-- **TODO**: Provide Async versions
+- **TODO**: Provide Async versions (moderate)
 - **TODO**: Have separate configuration class
 - DONE: ResetSoftDeleteViaKeys should filter out other query filters so only valid soft deleted entries reset
 - DONE: Add HardDeleteSoftDeletedEntries to single soft delete
@@ -21,12 +21,15 @@ However it is clean enough that you could copy the code and use in your applicat
 
 ### Cascade soft delete (90% done)
 
-- **TODO**: Provide Async versions
+Limitation: The hard delete will return an invalid number if
+1. The dependents have a delete behavior of CascadeDelete or ClientCascadeDelete AND...
+2. One or more of the dependent entities have a multi-tenant query filter like UserId 
+
+That's because the cascade delete service can't see any entries but the cascade delete WILL delete it. This isn't likely, but  
+
+- **TODO**: Provide Async versions (moderate)
 - **TODO**: Have separate configuration class
-   - Add setting for DeleteBehaviour checks
-- **TODO**: Need more unit tests
-    - Check `callSaveChanges` usage
-    - Check for UserId with hard delete
+   - Add setting for DeleteBehaviour checks (easy)
 - **TODO**: Change so that it works with navigational properties, backing fields and shadow properties (easy)
 - DONE: Change `CascadeWalker` to return the loaded relationships, with filtering,  (hard)
 - DONE: ResetSoftDeleteViaKeys should filter out other query filters so only valid soft deleted entries reset (moderate)

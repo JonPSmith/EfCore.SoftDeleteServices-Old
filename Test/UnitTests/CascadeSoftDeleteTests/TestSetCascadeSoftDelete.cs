@@ -86,7 +86,6 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
             }
         }
 
-
         [Fact]
         public void TestCascadeSoftDeleteEmployeeSoftDelInfoOk()
         {
@@ -104,9 +103,37 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 var status = service.SetCascadeSoftDelete(ceo.WorksFromMe.First());
 
                 //VERIFY
-                //Employee.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
+                Employee.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
                 status.IsValid.ShouldBeTrue(status.GetAllErrors());
                 status.Result.ShouldEqual(7 + 6);
+                context.Employees.IgnoreQueryFilters().Count(x => x.SoftDeleteLevel != 0).ShouldEqual(7);
+                status.Message.ShouldEqual("You have soft deleted an entity and its 12 dependents");
+            }
+        }
+
+        [Fact]
+        public void TestCascadeSoftDeleteEmployeeSoftDelInfoNoCallSaveChangesOk()
+        {
+            //SETUP
+            var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
+            using (var context = new CascadeSoftDelDbContext(options))
+            {
+                context.Database.EnsureCreated();
+                var ceo = Employee.SeedEmployeeSoftDel(context);
+
+                var config = new ConfigCascadeDeleteWithUserId(context);
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+
+                //ATTEMPT
+                var status = service.SetCascadeSoftDelete(ceo.WorksFromMe.First(), false);
+                context.Employees.IgnoreQueryFilters().Count(x => x.SoftDeleteLevel != 0).ShouldEqual(0);
+                context.SaveChanges();
+                context.Employees.IgnoreQueryFilters().Count(x => x.SoftDeleteLevel != 0).ShouldEqual(7);
+
+                //VERIFY
+                //Employee.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
+                status.Result.ShouldEqual(7 + 6);
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
                 status.Message.ShouldEqual("You have soft deleted an entity and its 12 dependents");
             }
         }
@@ -432,6 +459,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 softDeleted.Single().CompanyName.ShouldEqual(company.CompanyName);
             }
         }
+
         [Fact]
         public void TestCascadeDeleteCompanySomeQuotesDifferentUserIdOk()
         {

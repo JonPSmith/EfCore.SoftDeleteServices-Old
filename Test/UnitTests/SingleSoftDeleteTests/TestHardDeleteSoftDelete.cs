@@ -86,7 +86,6 @@ namespace Test.UnitTests.SingleSoftDeleteTests
             }
         }
 
-
         [Fact]
         public void TestHardDeleteViaKeysOk()
         {
