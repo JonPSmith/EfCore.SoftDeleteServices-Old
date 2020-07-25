@@ -33,24 +33,22 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
-            using (var context = new CascadeSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var ceo = Employee.SeedEmployeeSoftDel(context);
+            using var context = new CascadeSoftDelDbContext(options);
+            context.Database.EnsureCreated();
+            var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
-                var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
-                numSoftDeleted.ShouldEqual(7 + 6);
-                Employee.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
+            var config = new ConfigCascadeDeleteWithUserId(context);
+            var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+            var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
+            numSoftDeleted.ShouldEqual(7 + 6);
+            Employee.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
 
-                //ATTEMPT
-                var status = service.CheckCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"));
+            //ATTEMPT
+            var status = service.CheckCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"));
 
-                //VERIFY
-                status.Result.ShouldEqual(7 + 6);
-                status.Message.ShouldEqual("Are you sure you want to hard delete this entity and its 12 dependents");
-            }
+            //VERIFY
+            status.Result.ShouldEqual(7 + 6);
+            status.Message.ShouldEqual("Are you sure you want to hard delete this entity and its 12 dependents");
         }
 
         [Fact]
@@ -58,22 +56,20 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
-            using (var context = new CascadeSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var ceo = Employee.SeedEmployeeSoftDel(context);
+            using var context = new CascadeSoftDelDbContext(options);
+            context.Database.EnsureCreated();
+            var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+            var config = new ConfigCascadeDeleteWithUserId(context);
+            var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
-                //ATTEMPT
-                var status = service.CheckCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "ProjectManager1"));
+            //ATTEMPT
+            var status = service.CheckCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "ProjectManager1"));
 
-                //VERIFY
-                status.IsValid.ShouldBeFalse();
-                status.Result.ShouldEqual(0);
-                status.GetAllErrors().ShouldEqual("This entry isn't soft deleted.");
-            }
+            //VERIFY
+            status.IsValid.ShouldBeFalse();
+            status.Result.ShouldEqual(0);
+            status.GetAllErrors().ShouldEqual("This entry isn't soft deleted.");
         }
 
         //---------------------------------------------------------
@@ -84,26 +80,24 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
-            using (var context = new CascadeSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var ceo = Employee.SeedEmployeeSoftDel(context);
+            using var context = new CascadeSoftDelDbContext(options);
+            context.Database.EnsureCreated();
+            var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
-                var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
-                numSoftDeleted.ShouldEqual(7 + 6);
-                Employee.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
+            var config = new ConfigCascadeDeleteWithUserId(context);
+            var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+            var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
+            numSoftDeleted.ShouldEqual(7 + 6);
+            Employee.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
 
-                //ATTEMPT
-                var status = service.HardDeleteSoftDeletedEntries(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"));
+            //ATTEMPT
+            var status = service.HardDeleteSoftDeletedEntries(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"));
 
-                //VERIFY
-                status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                status.Result.ShouldEqual(7 + 6);
-                status.Message.ShouldEqual("You have hard deleted an entity and its 12 dependents");
-                context.Employees.IgnoreQueryFilters().Count().ShouldEqual(4);
-            }
+            //VERIFY
+            status.IsValid.ShouldBeTrue(status.GetAllErrors());
+            status.Result.ShouldEqual(7 + 6);
+            status.Message.ShouldEqual("You have hard deleted an entity and its 12 dependents");
+            context.Employees.IgnoreQueryFilters().Count().ShouldEqual(4);
         }
 
         [Fact]
@@ -111,28 +105,26 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
-            using (var context = new CascadeSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var ceo = Employee.SeedEmployeeSoftDel(context);
+            using var context = new CascadeSoftDelDbContext(options);
+            context.Database.EnsureCreated();
+            var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
-                var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
-                numSoftDeleted.ShouldEqual(7 + 6);
-                Employee.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
+            var config = new ConfigCascadeDeleteWithUserId(context);
+            var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+            var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
+            numSoftDeleted.ShouldEqual(7 + 6);
+            Employee.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
 
-                //ATTEMPT
-                var status = service.HardDeleteSoftDeletedEntries(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"), false);
-                context.Employees.IgnoreQueryFilters().Count().ShouldEqual(11);
-                context.SaveChanges();
-                context.Employees.IgnoreQueryFilters().Count().ShouldEqual(4);
+            //ATTEMPT
+            var status = service.HardDeleteSoftDeletedEntries(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"), false);
+            context.Employees.IgnoreQueryFilters().Count().ShouldEqual(11);
+            context.SaveChanges();
+            context.Employees.IgnoreQueryFilters().Count().ShouldEqual(4);
 
-                //VERIFY
-                status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                status.Result.ShouldEqual(7 + 6);
-                status.Message.ShouldEqual("You have hard deleted an entity and its 12 dependents");
-            }
+            //VERIFY
+            status.IsValid.ShouldBeTrue(status.GetAllErrors());
+            status.Result.ShouldEqual(7 + 6);
+            status.Message.ShouldEqual("You have hard deleted an entity and its 12 dependents");
         }
 
         [Fact]
@@ -140,22 +132,20 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
-            using (var context = new CascadeSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var ceo = Employee.SeedEmployeeSoftDel(context);
+            using var context = new CascadeSoftDelDbContext(options);
+            context.Database.EnsureCreated();
+            var ceo = Employee.SeedEmployeeSoftDel(context);
 
-                var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+            var config = new ConfigCascadeDeleteWithUserId(context);
+            var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
 
-                //ATTEMPT
-                var status = service.HardDeleteSoftDeletedEntries(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "ProjectManager1"));
+            //ATTEMPT
+            var status = service.HardDeleteSoftDeletedEntries(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "ProjectManager1"));
 
-                //VERIFY
-                status.IsValid.ShouldBeFalse();
-                status.Result.ShouldEqual(0);
-                status.GetAllErrors().ShouldEqual("This entry isn't soft deleted.");
-            }
+            //VERIFY
+            status.IsValid.ShouldBeFalse();
+            status.Result.ShouldEqual(0);
+            status.GetAllErrors().ShouldEqual("This entry isn't soft deleted.");
         }
 
         //------------------------------------------------------------
@@ -167,27 +157,25 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
             //SETUP
             var userId = Guid.NewGuid();
             var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
-            using (var context = new CascadeSoftDelDbContext(options, userId))
-            {
-                context.Database.EnsureCreated();
-                var company = Company.SeedCompanyWithQuotes(context, userId);
-                Company.SeedCompanyWithQuotes(context, Guid.Empty, "Other company");
-                context.SaveChanges();
+            using var context = new CascadeSoftDelDbContext(options, userId);
+            context.Database.EnsureCreated();
+            var company = Company.SeedCompanyWithQuotes(context, userId);
+            Company.SeedCompanyWithQuotes(context, Guid.Empty, "Other company");
+            context.SaveChanges();
 
-                var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
-                service.SetCascadeSoftDelete(company).Result.ShouldEqual(1 + 4 + 4);
+            var config = new ConfigCascadeDeleteWithUserId(context);
+            var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+            service.SetCascadeSoftDelete(company).Result.ShouldEqual(1 + 4 + 4);
 
-                //ATTEMPT
-                var status = service.HardDeleteSoftDeletedEntries(company);
+            //ATTEMPT
+            var status = service.HardDeleteSoftDeletedEntries(company);
 
-                //VERIFY
-                status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                status.Result.ShouldEqual(1 + 4 + 4);
-                status.Message.ShouldEqual("You have hard deleted an entity and its 8 dependents");
-                context.Quotes.Count().ShouldEqual(0);  
-                context.Quotes.IgnoreQueryFilters().Count().ShouldEqual(4); 
-            }
+            //VERIFY
+            status.IsValid.ShouldBeTrue(status.GetAllErrors());
+            status.Result.ShouldEqual(1 + 4 + 4);
+            status.Message.ShouldEqual("You have hard deleted an entity and its 8 dependents");
+            context.Quotes.Count().ShouldEqual(0);
+            context.Quotes.IgnoreQueryFilters().Count().ShouldEqual(4);
         }
 
     }

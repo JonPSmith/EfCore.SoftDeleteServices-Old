@@ -25,32 +25,26 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var book = context.AddBookWithReviewToDb();
+            
+            using var setupContext = new SingleSoftDelDbContext(options);
+            setupContext.Database.EnsureCreated();
+            var book = setupContext.AddBookWithReviewToDb();
+            var setupConfig = new ConfigSoftDeleteWithUserId(setupContext);
+            var setupService = new SingleSoftDeleteService<ISingleSoftDelete>(setupContext, setupConfig);
+            var setupStatus = setupService.SetSoftDelete(book);
+            setupStatus.IsValid.ShouldBeTrue(setupStatus.GetAllErrors());
 
-                var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
-                var status = service.SetSoftDelete(book);
-                status.IsValid.ShouldBeTrue(status.GetAllErrors());
-            }
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+            using var attemptContext = new SingleSoftDelDbContext(options);
+            var attemptConfig = new ConfigSoftDeleteWithUserId(attemptContext);
+            var attemptService = new SingleSoftDeleteService<ISingleSoftDelete>(attemptContext, attemptConfig);
+            //ATTEMPT
+            var attemptStatus = attemptService.HardDeleteSoftDeletedEntry(attemptContext.Books.IgnoreQueryFilters().Single());
+            //VERIFY
+            attemptStatus.IsValid.ShouldBeTrue(attemptStatus.GetAllErrors());
+            attemptStatus.Result.ShouldEqual(1);
 
-                //ATTEMPT
-                var status = service.HardDeleteSoftDeletedEntry(context.Books.IgnoreQueryFilters().Single());
-
-                //VERIFY
-                status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                status.Result.ShouldEqual(1);
-            }
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Books.IgnoreQueryFilters().Count().ShouldEqual(0);
-            }
+            using var testContext = new SingleSoftDelDbContext(options);
+            testContext.Books.IgnoreQueryFilters().Count().ShouldEqual(0);
         }
 
         [Fact]
@@ -58,32 +52,26 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var book = context.AddBookWithReviewToDb();
+            
+            using var setupContext = new SingleSoftDelDbContext(options);            
+            setupContext.Database.EnsureCreated();
+            var book = setupContext.AddBookWithReviewToDb();
+            var setupConfig = new ConfigSoftDeleteWithUserId(setupContext);
+            var setupService = new SingleSoftDeleteService<ISingleSoftDelete>(setupContext, setupConfig);
+            var setupStatus = setupService.SetSoftDelete(book);
+            setupStatus.IsValid.ShouldBeTrue(setupStatus.GetAllErrors());
 
-                var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
-                var status = service.SetSoftDelete(book);
-                status.IsValid.ShouldBeTrue(status.GetAllErrors());
-            }
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
-
-                //ATTEMPT
-                var status = service.HardDeleteSoftDeletedEntry(context.Books.IgnoreQueryFilters().Single(), false);
-                context.Books.IgnoreQueryFilters().Count().ShouldEqual(1);
-                context.SaveChanges();
-                context.Books.IgnoreQueryFilters().Count().ShouldEqual(0);
-
-                //VERIFY
-                status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                status.Result.ShouldEqual(1);
-
-            }
+            using var testContext = new SingleSoftDelDbContext(options);
+            var testConfig = new ConfigSoftDeleteWithUserId(testContext);
+            var testService = new SingleSoftDeleteService<ISingleSoftDelete>(testContext, testConfig);
+            //ATTEMPT
+            var testStatus = testService.HardDeleteSoftDeletedEntry(testContext.Books.IgnoreQueryFilters().Single(), false);
+            testContext.Books.IgnoreQueryFilters().Count().ShouldEqual(1);
+            testContext.SaveChanges();
+            testContext.Books.IgnoreQueryFilters().Count().ShouldEqual(0);
+            //VERIFY
+            testStatus.IsValid.ShouldBeTrue(testStatus.GetAllErrors());
+            testStatus.Result.ShouldEqual(1);
         }
 
         [Fact]
@@ -91,32 +79,27 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var book = context.AddBookWithReviewToDb();
+            
+            using var setupContext = new SingleSoftDelDbContext(options);
+            setupContext.Database.EnsureCreated();
+            var book = setupContext.AddBookWithReviewToDb();
 
-                var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
-                var status = service.SetSoftDelete(book);
-                status.IsValid.ShouldBeTrue(status.GetAllErrors());
-            }
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+            var setupConfig = new ConfigSoftDeleteWithUserId(setupContext);
+            var setupService = new SingleSoftDeleteService<ISingleSoftDelete>(setupContext, setupConfig);
+            var setupStatus = setupService.SetSoftDelete(book);
+            setupStatus.IsValid.ShouldBeTrue(setupStatus.GetAllErrors());
 
-                //ATTEMPT
-                var status = service.HardDeleteViaKeys<Book>(context.Books.IgnoreQueryFilters().Single().Id);
-
-                //VERIFY
-                status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                status.Result.ShouldEqual(1);
-            }
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Books.IgnoreQueryFilters().Count().ShouldEqual(0);
-            }
+            using var attemptContext = new SingleSoftDelDbContext(options);            
+            var attemptConfig = new ConfigSoftDeleteWithUserId(attemptContext);
+            var attemptService = new SingleSoftDeleteService<ISingleSoftDelete>(attemptContext, attemptConfig);
+            //ATTEMPT
+            var attemptStatus = attemptService.HardDeleteViaKeys<Book>(attemptContext.Books.IgnoreQueryFilters().Single().Id);
+            //VERIFY
+            attemptStatus.IsValid.ShouldBeTrue(attemptStatus.GetAllErrors());
+            attemptStatus.Result.ShouldEqual(1);
+            
+            using var testContext = new SingleSoftDelDbContext(options);
+            testContext.Books.IgnoreQueryFilters().Count().ShouldEqual(0);
         }
 
         [Fact]
@@ -124,23 +107,21 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var book = context.AddBookWithReviewToDb();
+            using var context = new SingleSoftDelDbContext(options);
+            context.Database.EnsureCreated();
+            var book = context.AddBookWithReviewToDb();
 
-                var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
-                var status1 = service.SetSoftDelete(book);
-                status1.IsValid.ShouldBeTrue(status1.GetAllErrors());
+            var config = new ConfigSoftDeleteWithUserId(context);
+            var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+            var status1 = service.SetSoftDelete(book);
+            status1.IsValid.ShouldBeTrue(status1.GetAllErrors());
 
-                //ATTEMPT
-                var status = service.HardDeleteViaKeys<Book>(234);
+            //ATTEMPT
+            var status = service.HardDeleteViaKeys<Book>(234);
 
-                //VERIFY
-                status.IsValid.ShouldBeFalse(status.GetAllErrors());
-                status.GetAllErrors().ShouldEqual("Could not find the entry you ask for.");
-            }
+            //VERIFY
+            status.IsValid.ShouldBeFalse(status.GetAllErrors());
+            status.GetAllErrors().ShouldEqual("Could not find the entry you ask for.");
         }
 
     }

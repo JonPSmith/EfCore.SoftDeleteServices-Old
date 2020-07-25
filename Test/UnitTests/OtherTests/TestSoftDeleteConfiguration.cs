@@ -34,30 +34,28 @@ namespace Test.UnitTests.OtherTests
             //SETUP
             var currentUser = Guid.NewGuid();
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options, currentUser))
-            {
-                context.Database.EnsureCreated();
-                var order1 = new Order
-                    { OrderRef = "Cur user Order, soft del", SoftDeleted = true, UserId = currentUser };
-                var order2 = new Order
-                    { OrderRef = "Cur user Order", SoftDeleted = false, UserId = currentUser };
-                var order3 = new Order
-                    { OrderRef = "Diff user Order", SoftDeleted = true, UserId = Guid.NewGuid() };
-                context.AddRange(order1, order2, order3);
-                context.SaveChanges();
+            using var context = new SingleSoftDelDbContext(options, currentUser);
+            context.Database.EnsureCreated();
+            var order1 = new Order
+            { OrderRef = "Cur user Order, soft del", SoftDeleted = true, UserId = currentUser };
+            var order2 = new Order
+            { OrderRef = "Cur user Order", SoftDeleted = false, UserId = currentUser };
+            var order3 = new Order
+            { OrderRef = "Diff user Order", SoftDeleted = true, UserId = Guid.NewGuid() };
+            context.AddRange(order1, order2, order3);
+            context.SaveChanges();
 
-                var config = new ConfigSoftDeleteWithUserId(context);
+            var config = new ConfigSoftDeleteWithUserId(context);
 
-                //ATTEMPT
-                var query = context.Orders.IgnoreQueryFilters().Where(
-                        config.FilterToGetValueSingleSoftDeletedEntities<Order, ISingleSoftDelete>())
-                    .Select(x => x.OrderRef);
-                var result = query.ToList();
+            //ATTEMPT
+            var query = context.Orders.IgnoreQueryFilters().Where(
+                    config.FilterToGetValueSingleSoftDeletedEntities<Order, ISingleSoftDelete>())
+                .Select(x => x.OrderRef);
+            var result = query.ToList();
 
-                //VERIFY
-                _output.WriteLine(query.ToQueryString());
-                result.Count.ShouldEqual(1);
-            }
+            //VERIFY
+            _output.WriteLine(query.ToQueryString());
+            result.Count.ShouldEqual(1);
         }
         [Fact]
         public void TestExpressionBuilderFormOtherFiltersOnlyWithUserIdOk()
@@ -65,30 +63,28 @@ namespace Test.UnitTests.OtherTests
             //SETUP
             var currentUser = Guid.NewGuid();
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options, currentUser))
-            {
-                context.Database.EnsureCreated();
-                var order1 = new Order
-                    { OrderRef = "Cur user Order, soft del", SoftDeleted = true, UserId = currentUser };
-                var order2 = new Order
-                    { OrderRef = "Cur user Order", SoftDeleted = false, UserId = currentUser };
-                var order3 = new Order
-                    { OrderRef = "Diff user Order", SoftDeleted = true, UserId = Guid.NewGuid() };
-                context.AddRange(order1, order2, order3);
-                context.SaveChanges();
+            using var context = new SingleSoftDelDbContext(options, currentUser);
+            context.Database.EnsureCreated();
+            var order1 = new Order
+            { OrderRef = "Cur user Order, soft del", SoftDeleted = true, UserId = currentUser };
+            var order2 = new Order
+            { OrderRef = "Cur user Order", SoftDeleted = false, UserId = currentUser };
+            var order3 = new Order
+            { OrderRef = "Diff user Order", SoftDeleted = true, UserId = Guid.NewGuid() };
+            context.AddRange(order1, order2, order3);
+            context.SaveChanges();
 
-                var config = new ConfigSoftDeleteWithUserId(context);
+            var config = new ConfigSoftDeleteWithUserId(context);
 
-                //ATTEMPT
-                var query = context.Orders.IgnoreQueryFilters().Where(
-                        config.FilterToGetValueSingleSoftDeletedEntities<Order,ISingleSoftDelete>())
-                    .Select(x => x.OrderRef);
-                var result = query.ToList();
+            //ATTEMPT
+            var query = context.Orders.IgnoreQueryFilters().Where(
+                    config.FilterToGetValueSingleSoftDeletedEntities<Order, ISingleSoftDelete>())
+                .Select(x => x.OrderRef);
+            var result = query.ToList();
 
-                //VERIFY
-                _output.WriteLine(query.ToQueryString());
-                result.Count.ShouldEqual(1);
-            }
+            //VERIFY
+            _output.WriteLine(query.ToQueryString());
+            result.Count.ShouldEqual(1);
         }
 
         [Fact]
@@ -96,26 +92,24 @@ namespace Test.UnitTests.OtherTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var book = new Book { Title = "test", SoftDeleted = true};
-                context.Add(book);
-                context.SaveChanges();
+            using var context = new SingleSoftDelDbContext(options);
+            context.Database.EnsureCreated();
+            var book = new Book { Title = "test", SoftDeleted = true };
+            context.Add(book);
+            context.SaveChanges();
 
-                var config = new ConfigSoftDeleteWithUserId(context);
+            var config = new ConfigSoftDeleteWithUserId(context);
 
-                //ATTEMPT
-                var getSoftValue = config.GetSoftDeleteValue.Compile().Invoke(book);
-                getSoftValue.ShouldBeTrue();
-                var query = context.Books.IgnoreQueryFilters().Where(config.GetSoftDeleteValue).Cast<Book>()
-                    .Select(x => x.Title.Length);
-                var result = query.ToList();
+            //ATTEMPT
+            var getSoftValue = config.GetSoftDeleteValue.Compile().Invoke(book);
+            getSoftValue.ShouldBeTrue();
+            var query = context.Books.IgnoreQueryFilters().Where(config.GetSoftDeleteValue).Cast<Book>()
+                .Select(x => x.Title.Length);
+            var result = query.ToList();
 
-                //VERIFY
-                _output.WriteLine(query.ToQueryString());
-                result.Count.ShouldEqual(1);
-            }
+            //VERIFY
+            _output.WriteLine(query.ToQueryString());
+            result.Count.ShouldEqual(1);
         }
 
 
@@ -125,32 +119,30 @@ namespace Test.UnitTests.OtherTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
-            using (var context = new CascadeSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var ceo = Employee.SeedEmployeeSoftDel(context);
-                ceo.SoftDeleteLevel = 1;
-                ceo.WorksFromMe.First().SoftDeleteLevel = 1;
-                context.SaveChanges();
+            using var context = new CascadeSoftDelDbContext(options);
+            context.Database.EnsureCreated();
+            var ceo = Employee.SeedEmployeeSoftDel(context);
+            ceo.SoftDeleteLevel = 1;
+            ceo.WorksFromMe.First().SoftDeleteLevel = 1;
+            context.SaveChanges();
 
-                Expression<Func<ICascadeSoftDelete, byte>> expression = entity => entity.SoftDeleteLevel;
+            Expression<Func<ICascadeSoftDelete, byte>> expression = entity => entity.SoftDeleteLevel;
 
-                var parameter = Expression.Parameter(typeof(ICascadeSoftDelete), expression.Parameters.Single().Name);
-                var left = Expression.Invoke(expression,  parameter);
-                var right = Expression.Constant((byte)1, typeof(byte));
-                var equal = Expression.Equal(left, right);
-                var dynamicFilter = Expression.Lambda<Func<ICascadeSoftDelete, bool>>(equal, parameter);
+            var parameter = Expression.Parameter(typeof(ICascadeSoftDelete), expression.Parameters.Single().Name);
+            var left = Expression.Invoke(expression, parameter);
+            var right = Expression.Constant((byte)1, typeof(byte));
+            var equal = Expression.Equal(left, right);
+            var dynamicFilter = Expression.Lambda<Func<ICascadeSoftDelete, bool>>(equal, parameter);
 
-               //ATTEMPT
-               var query = context.Employees.IgnoreQueryFilters()
-                   .Where(dynamicFilter).Cast<Employee>()
-                   .Select(x => x.Name);
-                var result = query.ToList();
+            //ATTEMPT
+            var query = context.Employees.IgnoreQueryFilters()
+                .Where(dynamicFilter).Cast<Employee>()
+                .Select(x => x.Name);
+            var result = query.ToList();
 
-                //VERIFY
-                _output.WriteLine(query.ToQueryString());
-                result.Count.ShouldEqual(2);
-            }
+            //VERIFY
+            _output.WriteLine(query.ToQueryString());
+            result.Count.ShouldEqual(2);
         }
     }
 }

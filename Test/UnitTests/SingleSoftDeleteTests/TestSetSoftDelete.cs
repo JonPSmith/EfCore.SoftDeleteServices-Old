@@ -24,21 +24,17 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
+            using var setupContext = new SingleSoftDelDbContext(options);
+            setupContext.Database.EnsureCreated();
 
-                //ATTEMPT
-                context.AddBookWithReviewToDb();
-            }
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                //VERIFY
-                var book = context.Books.Include(x => x.Reviews).Single();
-                book.Title.ShouldEqual("test");
-                book.Reviews.ShouldNotBeNull();
-                book.Reviews.Single().NumStars.ShouldEqual(1);
-            }
+            //ATTEMPT
+            setupContext.AddBookWithReviewToDb();
+            using var testContext = new SingleSoftDelDbContext(options);
+            //VERIFY
+            var book = testContext.Books.Include(x => x.Reviews).Single();
+            book.Title.ShouldEqual("test");
+            book.Reviews.ShouldNotBeNull();
+            book.Reviews.Single().NumStars.ShouldEqual(1);
         }
 
         [Fact]
@@ -46,26 +42,23 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var book = context.AddBookWithReviewToDb();
+            using var setupContext = new SingleSoftDelDbContext(options);
+            setupContext.Database.EnsureCreated();
+            var book = setupContext.AddBookWithReviewToDb();
 
-                var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+            var config = new ConfigSoftDeleteWithUserId(setupContext);
+            var service = new SingleSoftDeleteService<ISingleSoftDelete>(setupContext, config);
 
-                //ATTEMPT
-                var status = service.SetSoftDelete(book);
+            //ATTEMPT
+            var status = service.SetSoftDelete(book);
 
-                //VERIFY
-                status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                status.Result.ShouldEqual(1);
-            }
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Books.Count().ShouldEqual(0);
-                context.Books.IgnoreQueryFilters().Count().ShouldEqual(1);
-            }
+            //VERIFY
+            status.IsValid.ShouldBeTrue(status.GetAllErrors());
+            status.Result.ShouldEqual(1);
+
+            using var testContext = new SingleSoftDelDbContext(options);
+            testContext.Books.Count().ShouldEqual(0);
+            testContext.Books.IgnoreQueryFilters().Count().ShouldEqual(1);
         }
 
         [Fact]
@@ -73,25 +66,23 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var book = context.AddBookWithReviewToDb();
+            using var context = new SingleSoftDelDbContext(options);
+            context.Database.EnsureCreated();
+            var book = context.AddBookWithReviewToDb();
 
-                var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+            var config = new ConfigSoftDeleteWithUserId(context);
+            var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
-                //ATTEMPT
-                var status = service.SetSoftDelete(book, false);
-                context.Books.Count().ShouldEqual(1);
-                context.SaveChanges();
-                context.Books.Count().ShouldEqual(0);
+            //ATTEMPT
+            var status = service.SetSoftDelete(book, false);
+            context.Books.Count().ShouldEqual(1);
+            context.SaveChanges();
+            context.Books.Count().ShouldEqual(0);
 
-                //VERIFY
-                status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                status.Result.ShouldEqual(1);
-                context.Books.IgnoreQueryFilters().Count().ShouldEqual(1);
-            }
+            //VERIFY
+            status.IsValid.ShouldBeTrue(status.GetAllErrors());
+            status.Result.ShouldEqual(1);
+            context.Books.IgnoreQueryFilters().Count().ShouldEqual(1);
         }
 
         [Fact]
@@ -99,26 +90,23 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var book = context.AddBookWithReviewToDb();
+            using var setupContext = new SingleSoftDelDbContext(options);
+            setupContext.Database.EnsureCreated();
+            var book = setupContext.AddBookWithReviewToDb();
 
-                var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+            var config = new ConfigSoftDeleteWithUserId(setupContext);
+            var service = new SingleSoftDeleteService<ISingleSoftDelete>(setupContext, config);
 
-                //ATTEMPT
-                var status = service.SetSoftDeleteViaKeys<Book>(book.Id);
+            //ATTEMPT
+            var status = service.SetSoftDeleteViaKeys<Book>(book.Id);
 
-                //VERIFY
-                status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                status.Result.ShouldEqual(1);
-            }
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Books.Count().ShouldEqual(0);
-                context.Books.IgnoreQueryFilters().Count().ShouldEqual(1);
-            }
+            //VERIFY
+            status.IsValid.ShouldBeTrue(status.GetAllErrors());
+            status.Result.ShouldEqual(1);
+
+            using var testContext = new SingleSoftDelDbContext(options);
+            testContext.Books.Count().ShouldEqual(0);
+            testContext.Books.IgnoreQueryFilters().Count().ShouldEqual(1);
         }
 
         [Fact]
@@ -126,20 +114,18 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var book = context.AddBookWithReviewToDb();
+            using var context = new SingleSoftDelDbContext(options);
+            context.Database.EnsureCreated();
+            var book = context.AddBookWithReviewToDb();
 
-                var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+            var config = new ConfigSoftDeleteWithUserId(context);
+            var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
-                //ATTEMPT
-                var ex = Assert.Throws<ArgumentException>(() => service.SetSoftDeleteViaKeys<Book>(book));
+            //ATTEMPT
+            var ex = Assert.Throws<ArgumentException>(() => service.SetSoftDeleteViaKeys<Book>(book));
 
-                //VERIFY
-                ex.Message.ShouldEqual("Mismatch in keys: your provided key 1 (of 1) is of type Book but entity key's type is System.Int32 (Parameter 'keyValues')");
-            }
+            //VERIFY
+            ex.Message.ShouldEqual("Mismatch in keys: your provided key 1 (of 1) is of type Book but entity key's type is System.Int32 (Parameter 'keyValues')");
         }
 
         [Fact]
@@ -147,20 +133,18 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var book = context.AddBookWithReviewToDb();
+            using var context = new SingleSoftDelDbContext(options);
+            context.Database.EnsureCreated();
+            var book = context.AddBookWithReviewToDb();
 
-                var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+            var config = new ConfigSoftDeleteWithUserId(context);
+            var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
-                //ATTEMPT
-                var ex = Assert.Throws<ArgumentException>(() => service.SetSoftDeleteViaKeys<Book>(1,2));
+            //ATTEMPT
+            var ex = Assert.Throws<ArgumentException>(() => service.SetSoftDeleteViaKeys<Book>(1, 2));
 
-                //VERIFY
-                ex.Message.ShouldEqual("Mismatch in keys: your provided 2 key(s) and the entity has 1 key(s) (Parameter 'keyValues')");
-            }
+            //VERIFY
+            ex.Message.ShouldEqual("Mismatch in keys: your provided 2 key(s) and the entity has 1 key(s) (Parameter 'keyValues')");
         }
 
         [Fact]
@@ -168,21 +152,19 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
+            using var context = new SingleSoftDelDbContext(options);
+            context.Database.EnsureCreated();
 
-                var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+            var config = new ConfigSoftDeleteWithUserId(context);
+            var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
-                //ATTEMPT
-                var status = service.SetSoftDeleteViaKeys<Book>(123);
+            //ATTEMPT
+            var status = service.SetSoftDeleteViaKeys<Book>(123);
 
-                //VERIFY
-                status.IsValid.ShouldBeFalse();
-                status.GetAllErrors().ShouldEqual("Could not find the entry you ask for.");
-                status.Result.ShouldEqual(0);
-            }
+            //VERIFY
+            status.IsValid.ShouldBeFalse();
+            status.GetAllErrors().ShouldEqual("Could not find the entry you ask for.");
+            status.Result.ShouldEqual(0);
         }
 
         [Fact]
@@ -190,20 +172,18 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
+            using var context = new SingleSoftDelDbContext(options);
+            context.Database.EnsureCreated();
 
-                var config = new ConfigSoftDeleteWithUserId(context) {NotFoundIsNotAnError = true};
-                var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
+            var config = new ConfigSoftDeleteWithUserId(context) { NotFoundIsNotAnError = true };
+            var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
-                //ATTEMPT
-                var status = service.SetSoftDeleteViaKeys<Book>(123);
+            //ATTEMPT
+            var status = service.SetSoftDeleteViaKeys<Book>(123);
 
-                //VERIFY
-                status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                status.Result.ShouldEqual(0);
-            }
+            //VERIFY
+            status.IsValid.ShouldBeTrue(status.GetAllErrors());
+            status.Result.ShouldEqual(0);
         }
 
         //----------------------------------------
@@ -214,28 +194,25 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var bookDdd = new BookDDD("Test");
-                context.Add(bookDdd);
-                context.SaveChanges();
+            using var setupContext = new SingleSoftDelDbContext(options);
+            setupContext.Database.EnsureCreated();
+            var bookDdd = new BookDDD("Test");
+            setupContext.Add(bookDdd);
+            setupContext.SaveChanges();
 
-                var config = new ConfigSoftDeleteDDD();
-                var service = new SingleSoftDeleteService<ISingleSoftDeletedDDD>(context, config);
+            var config = new ConfigSoftDeleteDDD();
+            var service = new SingleSoftDeleteService<ISingleSoftDeletedDDD>(setupContext, config);
 
-                //ATTEMPT
-                var status = service.SetSoftDelete(bookDdd);
+            //ATTEMPT
+            var status = service.SetSoftDelete(bookDdd);
 
-                //VERIFY
-                status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                status.Result.ShouldEqual(1);
-            }
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.BookDdds.Count().ShouldEqual(0);
-                context.BookDdds.IgnoreQueryFilters().Count().ShouldEqual(1);
-            }
+            //VERIFY
+            status.IsValid.ShouldBeTrue(status.GetAllErrors());
+            status.Result.ShouldEqual(1);
+
+            using var testContext = new SingleSoftDelDbContext(options);
+            testContext.BookDdds.Count().ShouldEqual(0);
+            testContext.BookDdds.IgnoreQueryFilters().Count().ShouldEqual(1);
         }
 
         [Fact]
@@ -243,28 +220,25 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.Database.EnsureCreated();
-                var bookDdd = new BookDDD("Test");
-                context.Add(bookDdd);
-                context.SaveChanges();
+            using var setupContext = new SingleSoftDelDbContext(options);
+            setupContext.Database.EnsureCreated();
+            var bookDdd = new BookDDD("Test");
+            setupContext.Add(bookDdd);
+            setupContext.SaveChanges();
 
-                var config = new ConfigSoftDeleteDDD();
-                var service = new SingleSoftDeleteService<ISingleSoftDeletedDDD>(context, config);
+            var config = new ConfigSoftDeleteDDD();
+            var service = new SingleSoftDeleteService<ISingleSoftDeletedDDD>(setupContext, config);
 
-                //ATTEMPT
-                var status = service.SetSoftDeleteViaKeys<BookDDD>(bookDdd.Id);
+            //ATTEMPT
+            var status = service.SetSoftDeleteViaKeys<BookDDD>(bookDdd.Id);
 
-                //VERIFY
-                status.IsValid.ShouldBeTrue(status.GetAllErrors());
-                status.Result.ShouldEqual(1);
-            }
-            using (var context = new SingleSoftDelDbContext(options))
-            {
-                context.BookDdds.Count().ShouldEqual(0);
-                context.BookDdds.IgnoreQueryFilters().Count().ShouldEqual(1);
-            }
+            //VERIFY
+            status.IsValid.ShouldBeTrue(status.GetAllErrors());
+            status.Result.ShouldEqual(1);
+
+            using var testContext = new SingleSoftDelDbContext(options);
+            testContext.BookDdds.Count().ShouldEqual(0);
+            testContext.BookDdds.IgnoreQueryFilters().Count().ShouldEqual(1);
         }
 
 
