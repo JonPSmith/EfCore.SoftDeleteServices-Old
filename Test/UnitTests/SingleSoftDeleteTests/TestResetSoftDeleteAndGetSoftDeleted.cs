@@ -137,7 +137,7 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         }
 
         [Fact]
-        public void TestHardDeleteViaKeysWithUserIdOk()
+        public void TestSoftDeleteServiceResetSoftDeleteViaKeysWithUserIdOk()
         {
             //SETUP
             var currentUser = Guid.NewGuid();
@@ -175,7 +175,7 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         }
 
         [Fact]
-        public void TestHardDeleteViaKeysWithWrongUserIdBad()
+        public void TestSoftDeleteServiceResetSoftDeleteViaKeysWithWrongUserIdBad()
         {
             //SETUP
             var currentUser = Guid.NewGuid();
