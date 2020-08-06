@@ -413,6 +413,51 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
         }
 
         [Fact]
+        public void TestSeedCompanyWithQuotesQueryOk()
+        {
+            //SETUP
+            var userId = Guid.NewGuid();
+            var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
+            using (var context = new CascadeSoftDelDbContext(options, userId))
+            {
+                context.Database.EnsureCreated();
+                Company.SeedCompanyWithQuotes(context, userId);
+
+                //ATTEMPT
+                var query = context.Companies.Include(x => x.Quotes);
+                var company = query.Single();
+
+                //VERIFY
+                _output.WriteLine(query.ToQueryString());
+                company.Quotes.Count.ShouldEqual(4);
+            }
+        }
+
+        [Fact]
+        public void TestSeedCompanyWithQuotesQueryIgnoreOnIncludeOk()
+        {
+            //SETUP
+            var userId = Guid.NewGuid();
+            var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
+            using (var context = new CascadeSoftDelDbContext(options, userId))
+            {
+                context.Database.EnsureCreated();
+                Company.SeedCompanyWithQuotes(context, userId);
+                Company.SeedCompanyWithQuotes(context, userId, "company2");
+
+                //ATTEMPT
+                var companies = context.Companies.ToList();
+                var quotesQuery = context.Quotes.IgnoreQueryFilters()
+                    .Where(quote => companies.Select(company => company.Id).Contains(quote.Id));
+                var quotes = quotesQuery.ToList();
+
+                //VERIFY
+                _output.WriteLine(quotesQuery.ToQueryString());
+                companies.All(x => x.Quotes.Count == 4).ShouldBeTrue();
+            }
+        }
+
+        [Fact]
         public void TestCascadeDeleteCompanyOk()
         {
             //SETUP
