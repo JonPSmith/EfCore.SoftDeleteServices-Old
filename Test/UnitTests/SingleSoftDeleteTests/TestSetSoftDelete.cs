@@ -13,12 +13,20 @@ using Test.EfHelpers;
 using Test.ExampleConfigs;
 using TestSupport.EfHelpers;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Extensions.AssertExtensions;
 
 namespace Test.UnitTests.SingleSoftDeleteTests
 {
     public class TestSetSoftDelete
     {
+        private readonly ITestOutputHelper _output;
+
+        public TestSetSoftDelete(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
         public void TestAddBookWithReviewOk()
         {
@@ -35,6 +43,28 @@ namespace Test.UnitTests.SingleSoftDeleteTests
             {
                 //VERIFY
                 var book = context.Books.Include(x => x.Reviews).Single();
+                book.Title.ShouldEqual("test");
+                book.Reviews.ShouldNotBeNull();
+                book.Reviews.Single().NumStars.ShouldEqual(1);
+            }
+        }
+
+        [Fact]
+        public void TestQueryBookWithReviewsOk()
+        {
+            //SETUP
+            var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
+            using (var context = new SingleSoftDelDbContext(options))
+            {
+                context.Database.EnsureCreated();
+                context.AddBookWithReviewToDb();
+
+                //ATTEMPT
+                var query = context.Books.Include(x => x.Reviews);
+                var book = query.Single();
+
+                //VERIFY
+                _output.WriteLine(query.ToQueryString());
                 book.Title.ShouldEqual("test");
                 book.Reviews.ShouldNotBeNull();
                 book.Reviews.Single().NumStars.ShouldEqual(1);
