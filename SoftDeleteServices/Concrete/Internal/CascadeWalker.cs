@@ -99,13 +99,13 @@ namespace SoftDeleteServices.Concrete.Internal
             {
                 case CascadeSoftDelWhatDoing.SoftDelete:
                     if (_config.GetSoftDeleteValue.Compile().Invoke(castToCascadeSoftDelete) != 0)
-                        //If the entity has already been soft deleted , then we don't change it, nor its child relationships
+                        //If the entity has already been soft deleted, then we don't change it, nor its child relationships
                         return true;
                     _config.SetSoftDeleteValue(castToCascadeSoftDelete, cascadeLevel);
                     break;
                 case CascadeSoftDelWhatDoing.ResetSoftDelete:
                     if (_config.GetSoftDeleteValue.Compile().Invoke(castToCascadeSoftDelete) != cascadeLevel)
-                        //Don't reset if it was soft deleted value doesn't match -this stops previously deleted sub-groups being updeleted
+                        //Don't reset if it was soft deleted value doesn't match - this stops previously deleted sub-groups being undeleted
                         return true;
                     _config.SetSoftDeleteValue(castToCascadeSoftDelete, 0);
                     break;

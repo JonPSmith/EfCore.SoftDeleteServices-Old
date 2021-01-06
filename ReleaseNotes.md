@@ -11,7 +11,6 @@ However it is clean enough that you could copy the code and use in your applicat
 ### Single soft delete (95% done)
 
 - **TODO**: Provide Async versions (moderate)
-- **TODO**: Have separate configuration class
 - DONE: ResetSoftDeleteViaKeys should filter out other query filters so only valid soft deleted entries reset
 - DONE: Add HardDeleteSoftDeletedEntries to single soft delete
 - DONE: Allow user to provide their own `ISoftDelete` interface (moderate)
@@ -21,16 +20,13 @@ However it is clean enough that you could copy the code and use in your applicat
 
 ### Cascade soft delete (90% done)
 
-Limitation: The hard delete will return an invalid number if
+Limitation: The hard delete will return the wrong number if
 1. The dependents have a delete behavior of CascadeDelete or ClientCascadeDelete AND...
 2. One or more of the dependent entities have a multi-tenant query filter like UserId 
 
 That's because the cascade delete service can't see any entries but the cascade delete WILL delete it. This isn't likely, but  
 
 - **TODO**: Provide Async versions (moderate)
-- **TODO**: Have separate configuration class
-   - Add setting for DeleteBehaviour checks (easy)
-- **TODO**: Change so that it works with navigational properties, backing fields and shadow properties (easy)
 - DONE: Change `CascadeWalker` to return the loaded relationships, with filtering,  (hard)
 - DONE: ResetSoftDeleteViaKeys should filter out other query filters so only valid soft deleted entries reset (moderate)
 - DONE: Move `ReadEveryTime` to config
@@ -46,3 +42,8 @@ That's because the cascade delete service can't see any entries but the cascade 
 * Example of using shadow properties for cascade delete
 * Documentation
 * Think about using SQL code to improve cascade soft delete performance (very hard)
+
+### Possible improvements
+
+- Change so that it works with navigational properties, backing fields and shadow properties (easy, but needs lots of unit tests)
+

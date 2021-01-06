@@ -215,15 +215,17 @@ namespace SoftDeleteServices.Concrete
             where TEntity : class, TInterface
         {
             var status = new StatusGenericHandler<int>();
-            var entity = _context.LoadEntityViaPrimaryKeys<TEntity>(_config.OtherFilters, keyValues);
-            if (entity == null)
+            var valueTask = _context.LoadEntityViaPrimaryKeys<TEntity>(_config.OtherFilters, false, keyValues);
+            if (!valueTask.IsCompleted)
+                throw new InvalidOperationException("Can only run sync tasks");
+            if (valueTask.Result == null)
             {
                 if (!_config.NotFoundIsNotAnError)
                     status.AddError("Could not find the entry you ask for.");
                 return status;
             }
 
-            return softDeleteAction(entity, true);
+            return softDeleteAction(valueTask.Result, true);
         }
 
         private IStatusGeneric<int> ReturnSuccessFullResult(CascadeSoftDelWhatDoing whatDoing, int numFound)

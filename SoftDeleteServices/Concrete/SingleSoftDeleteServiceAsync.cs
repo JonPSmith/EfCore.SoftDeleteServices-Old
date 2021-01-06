@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SoftDeleteServices.Concrete.Internal;
 using SoftDeleteServices.Configuration;
@@ -14,7 +15,7 @@ namespace SoftDeleteServices.Concrete
     /// This service handles single soft delete, i.e. it only soft deletes a single entity by setting a boolean flag in that entity
     /// </summary>
     /// <typeparam name="TInterface">You provide the interface you applied to your entity classes to require a boolean flag</typeparam>
-    public class SingleSoftDeleteService<TInterface>
+    public class SingleSoftDeleteServiceAsync<TInterface>
         where TInterface : class
     {
         private readonly DbContext _context;
@@ -25,7 +26,7 @@ namespace SoftDeleteServices.Concrete
         /// </summary>
         /// <param name="context"></param>
         /// <param name="config"></param>
-        public SingleSoftDeleteService(DbContext context, SoftDeleteConfiguration<TInterface, bool> config)
+        public SingleSoftDeleteServiceAsync(DbContext context, SoftDeleteConfiguration<TInterface, bool> config)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -41,10 +42,10 @@ namespace SoftDeleteServices.Concrete
         /// </summary>
         /// <param name="keyValues">primary key values</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error of Not Found and notFoundAllowed is true</returns>
-        public IStatusGeneric<int> SetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
+        public async Task<IStatusGeneric<int>> SetSoftDeleteViaKeysAsync<TEntity>(params object[] keyValues)
             where TEntity : class, TInterface
         {
-            return CheckExecuteSoftDelete<TEntity>(SetSoftDelete, keyValues);
+            return await CheckExecuteSoftDeleteAsync<TEntity>(SetSoftDeleteAsync, keyValues);
         }
 
         /// <summary>
@@ -52,10 +53,10 @@ namespace SoftDeleteServices.Concrete
         /// </summary>
         /// <param name="keyValues">primary key values</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error of Not Found and notFoundAllowed is true</returns>
-        public IStatusGeneric<int> ResetSoftDeleteViaKeys<TEntity>(params object[] keyValues)
+        public async Task<IStatusGeneric<int>> ResetSoftDeleteViaKeysAsync<TEntity>(params object[] keyValues)
             where TEntity : class, TInterface
         {
-            return CheckExecuteSoftDelete<TEntity>(ResetSoftDelete, keyValues);
+            return await CheckExecuteSoftDeleteAsync<TEntity>(ResetSoftDeleteAsync, keyValues);
         }
 
         /// <summary>
@@ -63,19 +64,19 @@ namespace SoftDeleteServices.Concrete
         /// </summary>
         /// <param name="keyValues">primary key values</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error of Not Found and notFoundAllowed is true</returns>
-        public IStatusGeneric<int> HardDeleteViaKeys<TEntity>(params object[] keyValues)
+        public async Task<IStatusGeneric<int>> HardDeleteViaKeysAsync<TEntity>(params object[] keyValues)
             where TEntity : class, TInterface
         {
-            return CheckExecuteSoftDelete<TEntity>(HardDeleteSoftDeletedEntry, keyValues);
+            return await CheckExecuteSoftDeleteAsync<TEntity>(HardDeleteSoftDeletedEntryAsync, keyValues);
         }
 
         /// <summary>
-        /// This will single soft delete the entity
+        /// This will soft delete the single entity. This may delete other dependent 
         /// </summary>
         /// <param name="softDeleteThisEntity">Mustn't be null</param>
         /// <param name="callSaveChanges">Defaults to calling SaveChanges. If set to false, then you must call SaveChanges</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if error</returns>
-        public IStatusGeneric<int> SetSoftDelete(TInterface softDeleteThisEntity, bool callSaveChanges = true)
+        public async Task<IStatusGeneric<int>> SetSoftDeleteAsync(TInterface softDeleteThisEntity, bool callSaveChanges = true)
         {
             if (softDeleteThisEntity == null) throw new ArgumentNullException(nameof(softDeleteThisEntity));
 
@@ -91,7 +92,7 @@ namespace SoftDeleteServices.Concrete
 
             _config.SetSoftDeleteValue(softDeleteThisEntity, true);
             if (callSaveChanges)
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
             status.Message = $"Successfully {_config.TextSoftDeletedPastTense} this entry";
             status.SetResult(1);        //one changed
@@ -102,9 +103,9 @@ namespace SoftDeleteServices.Concrete
         /// This resets the single soft delete flag so that entity is now visible
         /// </summary>
         /// <param name="resetSoftDeleteThisEntity">Mustn't be null</param>
-        /// <param name="callSaveChanges">Defaults to calling SaveChanges. If set to false, then you must call SaveChanges</param>
+        /// <param name="callSaveChanges">Defaults to calling SaveChanges. If set to false, then you must call SaveChanges yourself</param>
         /// <returns>Returns status. If not errors then Result return 1 to say it worked. Zero if errors</returns>
-        public IStatusGeneric<int> ResetSoftDelete(TInterface resetSoftDeleteThisEntity, bool callSaveChanges = true)
+        public async Task<IStatusGeneric<int>> ResetSoftDeleteAsync(TInterface resetSoftDeleteThisEntity, bool callSaveChanges = true)
         {
             if (resetSoftDeleteThisEntity == null) throw new ArgumentNullException(nameof(resetSoftDeleteThisEntity));
 
@@ -114,10 +115,10 @@ namespace SoftDeleteServices.Concrete
 
             _config.SetSoftDeleteValue(resetSoftDeleteThisEntity, false);
             if (callSaveChanges)
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
             status.Message = $"Successfully {_config.TextResetSoftDelete} on this entry";
-            status.SetResult(1);        //one changed
+            status.SetResult(1);   //One changed
             return status;
         }
 
@@ -129,7 +130,7 @@ namespace SoftDeleteServices.Concrete
         /// <param name="hardDeleteThisEntity">The entity to delete</param>
         /// <param name="callSaveChanges">Defaults to calling SaveChanges. If set to false, then you must call SaveChanges yourself</param>
         /// <returns>The number of entities that were deleted. This will include any dependent entities that that had a cascade delete behaviour</returns>
-        public IStatusGeneric<int> HardDeleteSoftDeletedEntry<TEntity>(TEntity hardDeleteThisEntity, bool callSaveChanges = true)
+        public async Task<IStatusGeneric<int>> HardDeleteSoftDeletedEntryAsync<TEntity>(TEntity hardDeleteThisEntity, bool callSaveChanges = true)
             where TEntity : class, TInterface
         {
             if (hardDeleteThisEntity == null) throw new ArgumentNullException(nameof(hardDeleteThisEntity));
@@ -140,7 +141,7 @@ namespace SoftDeleteServices.Concrete
             _context.Remove(hardDeleteThisEntity);
             var numDeleted = 1;
             if (callSaveChanges)
-                numDeleted = _context.SaveChanges();
+                numDeleted = await _context.SaveChangesAsync();
 
             status.Message = $"Successfully {_config.TextHardDeletedPastTense} this entry";
             status.SetResult(numDeleted);
@@ -162,22 +163,20 @@ namespace SoftDeleteServices.Concrete
         //-----------------------------------------------
         //private methods
 
-        public IStatusGeneric<int> CheckExecuteSoftDelete<TEntity>(
-            Func<TInterface, bool, IStatusGeneric<int>> softDeleteAction, params object[] keyValues)
+        public async Task< IStatusGeneric<int>> CheckExecuteSoftDeleteAsync<TEntity>(
+            Func<TInterface, bool, Task<IStatusGeneric<int>>> softDeleteAction, params object[] keyValues)
             where TEntity : class, TInterface
         {
             var status = new StatusGenericHandler<int>();
-            var valueTask = _context.LoadEntityViaPrimaryKeys<TEntity>(_config.OtherFilters, false, keyValues);
-            if (!valueTask.IsCompleted)
-                throw new InvalidOperationException("Can only run sync tasks");
-            if (valueTask.Result == null)
+            var entity = await _context.LoadEntityViaPrimaryKeys<TEntity>(_config.OtherFilters, true, keyValues);
+            if (entity == null)
             {
                 if (!_config.NotFoundIsNotAnError)
                     status.AddError("Could not find the entry you ask for.");
                 return status;
             }
 
-            return softDeleteAction(valueTask.Result, true);
+            return await softDeleteAction(entity, true);
         }
     }
 }
