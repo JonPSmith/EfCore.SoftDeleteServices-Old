@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using SoftDeleteServices.Configuration;
@@ -17,6 +18,7 @@ namespace SoftDeleteServices.Concrete.Internal
     {
         private readonly DbContext _context;
         private readonly SoftDeleteConfiguration<TInterface, byte> _config;
+        private readonly bool _isAsync;
         private readonly CascadeSoftDelWhatDoing _whatDoing;
         private readonly bool _readEveryTime;
 
@@ -25,15 +27,17 @@ namespace SoftDeleteServices.Concrete.Internal
         public int NumFound { get; private set; }
 
         public CascadeWalker(DbContext context, SoftDeleteConfiguration<TInterface, byte> config,
+            bool isAsync,
             CascadeSoftDelWhatDoing whatDoing, bool readEveryTime)
         {
             _context = context;
             _config = config;
+            _isAsync = isAsync;
             _whatDoing = whatDoing;
-            _readEveryTime = readEveryTime;
+            _readEveryTime = readEveryTime && whatDoing == CascadeSoftDelWhatDoing.SoftDelete;
         }
 
-        public void WalkEntitiesSoftDelete(object principalInstance, byte cascadeLevel)
+        public async ValueTask WalkEntitiesSoftDelete(object principalInstance, byte cascadeLevel)
         {
             if (!(principalInstance is TInterface castToCascadeSoftDelete && principalInstance.GetType().IsClass) || _stopCircularLook.Contains(principalInstance))
                 return; //isn't something we need to consider, or we saw it before, so it returns 
@@ -63,24 +67,44 @@ namespace SoftDeleteServices.Concrete.Internal
                 {
                     if (_readEveryTime || navValue == null)
                     {
-                        navValue = LoadNavigationCollection(principalInstance, navigation, cascadeLevel);
+                        var navValueTask = LoadNavigationCollection(principalInstance, navigation, cascadeLevel);
+                        if (_isAsync)
+                            navValue = await navValueTask;
+                        else if (navValueTask.IsCompleted)
+                            navValue = navValueTask.Result;
+                        else
+                            throw new InvalidOperationException("Can only run sync tasks");
                     }
                     if (navValue == null)
                         return; //no relationship
                     foreach (var entity in navValue as IEnumerable)
                     {
-                        WalkEntitiesSoftDelete(entity, (byte)(cascadeLevel + 1));
+                        var walkValueTask = WalkEntitiesSoftDelete(entity, (byte)(cascadeLevel + 1));
+                        if (_isAsync)
+                            await walkValueTask;
+                        else if (!walkValueTask.IsCompleted)
+                            throw new InvalidOperationException("Can only run sync tasks");
                     }
                 }
                 else
                 {
                     if (_readEveryTime || navValue == null)
                     {
-                        navValue = LoadNavigationSingleton(principalInstance, navigation, cascadeLevel);
+                        var navValueTask = LoadNavigationSingleton(principalInstance, navigation, cascadeLevel);
+                        if (_isAsync)
+                            navValue = await navValueTask;
+                        else if (navValueTask.IsCompleted)
+                            navValue = navValueTask.Result;
+                        else
+                            throw new InvalidOperationException("Can only run sync tasks");
                     }
                     if (navValue == null)
                         return; //no relationship
-                    WalkEntitiesSoftDelete(navValue, (byte)(cascadeLevel + 1));
+                    var walkValueTask = WalkEntitiesSoftDelete(navValue, (byte)(cascadeLevel + 1));
+                    if (_isAsync)
+                        await walkValueTask;
+                    else if (!walkValueTask.IsCompleted)
+                        throw new InvalidOperationException("Can only run sync tasks");
                 }
             }
         }
@@ -127,7 +151,7 @@ namespace SoftDeleteServices.Concrete.Internal
             return false;
         }
 
-        private IEnumerable LoadNavigationCollection(object principalInstance, INavigation navigation, byte cascadeLevel)
+        private async ValueTask<IEnumerable> LoadNavigationCollection(object principalInstance, INavigation navigation, byte cascadeLevel)
         {
             byte levelToLookFor = _whatDoing == CascadeSoftDelWhatDoing.SoftDelete
                 ? (byte)0                     //if soft deleting then look for un-deleted entries
@@ -138,24 +162,40 @@ namespace SoftDeleteServices.Concrete.Internal
             var genericHelperType =
                 typeof(GenericCollectionLoader<>).MakeGenericType(typeof(TInterface), innerType);
 
-            dynamic loader = Activator.CreateInstance(genericHelperType, _context, _config, principalInstance, navigation.PropertyInfo, levelToLookFor);
-            return loader.FilteredEntities;
+            dynamic loader = Activator.CreateInstance(genericHelperType, _context, _config, _isAsync,
+                principalInstance, navigation.PropertyInfo, levelToLookFor);
+            var navValueTask = loader.GetFilteredEntities();
+            if (_isAsync)
+                return await navValueTask;
+            if (navValueTask.IsCompleted)
+                return navValueTask.Result;
+
+            throw new InvalidOperationException("Can only run sync tasks");
         }
 
         private class GenericCollectionLoader<TEntity> where TEntity : class, TInterface
         {
-            public IEnumerable FilteredEntities { get; }
+            private readonly bool _isAsync;
+            private readonly IQueryable<TEntity> _queryOfFilteredEntities;
 
-            public GenericCollectionLoader(DbContext context, SoftDeleteConfiguration<TInterface, byte> config, 
+            public async ValueTask<ICollection<TEntity>> GetFilteredEntities()
+            {
+                return _isAsync
+                    ? await _queryOfFilteredEntities.ToListAsync()
+                    : _queryOfFilteredEntities.ToList();
+            }
+
+            public GenericCollectionLoader(DbContext context, SoftDeleteConfiguration<TInterface, byte> config, bool isAsync,
                 object principalInstance, PropertyInfo propertyInfo, byte levelToLookFor)
             {
+                _isAsync = isAsync;
                 var query = context.Entry(principalInstance).Collection(propertyInfo.Name).Query();
-                FilteredEntities = query.Provider.CreateQuery<TEntity>(query.Expression).IgnoreQueryFilters()
-                    .Where(config.FilterToGetValueCascadeSoftDeletedEntities<TEntity, TInterface>(levelToLookFor)).ToList();
+                _queryOfFilteredEntities = _queryOfFilteredEntities = query.Provider.CreateQuery<TEntity>(query.Expression).IgnoreQueryFilters()
+                    .Where(config.FilterToGetValueCascadeSoftDeletedEntities<TEntity, TInterface>(levelToLookFor));
             }
         }
 
-        private object LoadNavigationSingleton(object principalInstance, INavigation navigation, byte cascadeLevel)
+        private async ValueTask<object> LoadNavigationSingleton(object principalInstance, INavigation navigation, byte cascadeLevel)
         {
             byte levelToLookFor = _whatDoing == CascadeSoftDelWhatDoing.SoftDelete
                 ? (byte)0                     //if soft deleting then look for un-deleted entries
@@ -166,20 +206,37 @@ namespace SoftDeleteServices.Concrete.Internal
             var genericHelperType =
                 typeof(GenericSingletonLoader<>).MakeGenericType(typeof(TInterface), navValueType);
 
-            dynamic loader = Activator.CreateInstance(genericHelperType, _context, _config, principalInstance, navigation.PropertyInfo, levelToLookFor);
-            return loader.FilteredSingleton;
+            dynamic loader = Activator.CreateInstance(genericHelperType, _context, _config, _isAsync,
+                principalInstance, navigation.PropertyInfo, levelToLookFor);
+
+            var navValueTask = loader.GetFilteredSingleton();
+            if (_isAsync)
+                return await navValueTask;
+            if (navValueTask.IsCompleted)
+                return navValueTask.Result;
+            
+            throw new InvalidOperationException("Can only run sync tasks");
         }
 
         private class GenericSingletonLoader<TEntity> where TEntity : class, TInterface
         {
-            public object FilteredSingleton;
+            private readonly bool _isAsync;
+            private readonly IQueryable<TEntity> _queryOfFilteredSingle;
 
-            public GenericSingletonLoader(DbContext context, SoftDeleteConfiguration<TInterface, byte> config, 
+            public async ValueTask<TEntity> GetFilteredSingleton()
+            {
+                return _isAsync
+                    ? await _queryOfFilteredSingle.SingleOrDefaultAsync()
+                    : _queryOfFilteredSingle.SingleOrDefault();
+            }
+
+            public GenericSingletonLoader(DbContext context, SoftDeleteConfiguration<TInterface, byte> config, bool isAsync,
                 object principalInstance, PropertyInfo propertyInfo, byte levelToLookFor)
             {
+                _isAsync = isAsync;
                 var query = context.Entry(principalInstance).Reference(propertyInfo.Name).Query();
-                FilteredSingleton = query.Provider.CreateQuery<TEntity>(query.Expression).IgnoreQueryFilters()
-                    .Where(config.FilterToGetValueCascadeSoftDeletedEntities<TEntity, TInterface>(levelToLookFor)).SingleOrDefault();
+                _queryOfFilteredSingle = query.Provider.CreateQuery<TEntity>(query.Expression).IgnoreQueryFilters()
+                    .Where(config.FilterToGetValueCascadeSoftDeletedEntities<TEntity, TInterface>(levelToLookFor));
             }
         }
 
