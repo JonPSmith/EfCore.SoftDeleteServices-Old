@@ -31,7 +31,7 @@ namespace Test.UnitTests.SingleSoftDeleteAsyncTests
                 var book = context.AddBookWithReviewToDb();
 
                 var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(context, config);
+                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(config);
                 await service.SetSoftDeleteAsync(book);
 
                 //ATTEMPT
@@ -59,7 +59,7 @@ namespace Test.UnitTests.SingleSoftDeleteAsyncTests
                 var book = context.AddBookWithReviewToDb();
 
                 var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(context, config);
+                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(config);
                 await service.SetSoftDeleteAsync(book);
 
                 //ATTEMPT
@@ -88,8 +88,8 @@ namespace Test.UnitTests.SingleSoftDeleteAsyncTests
                 context.Add(bookDdd);
                 context.SaveChanges();
 
-                var config = new ConfigSoftDeleteDDD();
-                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDeletedDDD>(context, config);
+                var config = new ConfigSoftDeleteDDD(context);
+                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDeletedDDD>(config);
                 await service.SetSoftDeleteAsync(bookDdd);
 
                 //ATTEMPT
@@ -118,7 +118,7 @@ namespace Test.UnitTests.SingleSoftDeleteAsyncTests
                 bookId = context.AddBookWithReviewToDb().Id;
 
                 var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(context, config);
+                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(config);
                 var status1 = await service.SetSoftDeleteViaKeysAsync<Book>(bookId);
                 status1.IsValid.ShouldBeTrue(status1.GetAllErrors());
 
@@ -161,7 +161,7 @@ namespace Test.UnitTests.SingleSoftDeleteAsyncTests
             using (var context = new SingleSoftDelDbContext(options, currentUser))
             {
                 var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(context, config);
+                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(config);
 
                 //ATTEMPT
                 var status = await service.ResetSoftDeleteViaKeysAsync<Order>(orderId);
@@ -199,7 +199,7 @@ namespace Test.UnitTests.SingleSoftDeleteAsyncTests
             using (var context = new SingleSoftDelDbContext(options, currentUser))
             {
                 var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(context, config);
+                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(config);
 
                 //ATTEMPT
                 var status = await service.ResetSoftDeleteViaKeysAsync<Order>(orderId);
@@ -227,7 +227,7 @@ namespace Test.UnitTests.SingleSoftDeleteAsyncTests
                 var book2 = context.AddBookWithReviewToDb("test2");
 
                 var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(context, config);
+                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(config);
                 var status = await service.SetSoftDeleteAsync(book1);
                 status.IsValid.ShouldBeTrue(status.GetAllErrors());
 
@@ -235,7 +235,7 @@ namespace Test.UnitTests.SingleSoftDeleteAsyncTests
             using (var context = new SingleSoftDelDbContext(options))
             {
                 var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(context, config);
+                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(config);
 
                 //ATTEMPT
                 var softDelBooks = await service.GetSoftDeletedEntries<Book>().ToListAsync();
@@ -271,7 +271,7 @@ namespace Test.UnitTests.SingleSoftDeleteAsyncTests
             using (var context = new SingleSoftDelDbContext(options, currentUser))
             {
                 var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(context, config);
+                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(config);
 
                 //ATTEMPT
                 var orders = await service.GetSoftDeletedEntries<Order>().ToListAsync();

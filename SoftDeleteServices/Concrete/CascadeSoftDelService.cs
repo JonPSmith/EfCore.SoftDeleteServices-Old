@@ -25,12 +25,11 @@ namespace SoftDeleteServices.Concrete
         /// <summary>
         /// This provides a equivalent to a SQL cascade delete, but using a soft delete approach.
         /// </summary>
-        /// <param name="context"></param>
         /// <param name="config"></param>
-        public CascadeSoftDelService(DbContext context, SoftDeleteConfiguration<TInterface, byte> config)
+        public CascadeSoftDelService(SoftDeleteConfiguration<TInterface, byte> config)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            _context = config.Context ?? throw new ArgumentNullException(nameof(config), "You must provide the DbContext");
 
             if (_config.GetSoftDeleteValue == null)
                 throw new InvalidOperationException($"You must set the {nameof(_config.GetSoftDeleteValue)} with a query to get the soft delete byte");

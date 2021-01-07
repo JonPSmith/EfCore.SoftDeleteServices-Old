@@ -4,13 +4,24 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 
 namespace SoftDeleteServices.Configuration
 {
-    public class SoftDeleteConfiguration<TInterface, TYourValue>
+    public class SoftDeleteConfiguration<TInterface, TYourValue> 
         where TInterface : class
         where TYourValue : struct
     {
+        public SoftDeleteConfiguration(DbContext context)
+        {
+            Context = context;
+        }
+
+        /// <summary>
+        /// This is used by the soft delete services to gain access to the specific DbContext used
+        /// </summary>
+        public DbContext Context { get; }
+
         /// <summary>
         /// This should contain a LINQ query that returns the soft delete value - MUST work in EF Core query
         /// e.g. entity => entity.SoftDeleted

@@ -39,7 +39,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
                 var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(config);
                 var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
                 numSoftDeleted.ShouldEqual(7 + 6);
                 Employee.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
@@ -64,7 +64,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
                 var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(config);
 
                 //ATTEMPT
                 var status = service.CheckCascadeSoftDelete(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "ProjectManager1"));
@@ -90,7 +90,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
                 var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(config);
                 var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
                 numSoftDeleted.ShouldEqual(7 + 6);
                 Employee.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
@@ -117,7 +117,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
                 var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(config);
                 var numSoftDeleted = service.SetCascadeSoftDelete(context.Employees.Single(x => x.Name == "CTO")).Result;
                 numSoftDeleted.ShouldEqual(7 + 6);
                 Employee.ShowHierarchical(ceo, x => _output.WriteLine(x), false);
@@ -146,7 +146,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
                 var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(config);
 
                 //ATTEMPT
                 var status = service.HardDeleteSoftDeletedEntries(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "ProjectManager1"));
@@ -175,7 +175,7 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
                 context.SaveChanges();
 
                 var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(config);
                 service.SetCascadeSoftDelete(company).Result.ShouldEqual(1 + 4 + 4);
 
                 //ATTEMPT

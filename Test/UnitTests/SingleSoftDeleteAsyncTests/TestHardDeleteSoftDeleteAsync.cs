@@ -30,14 +30,14 @@ namespace Test.UnitTests.SingleSoftDeleteAsyncTests
                 var book = context.AddBookWithReviewToDb();
 
                 var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(context, config);
+                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(config);
                 var status = await service.SetSoftDeleteAsync(book);
                 status.IsValid.ShouldBeTrue(status.GetAllErrors());
             }
             using (var context = new SingleSoftDelDbContext(options))
             {
                 var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(context, config);
+                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(config);
 
                 //ATTEMPT
                 var status = await service.HardDeleteSoftDeletedEntryAsync(context.Books.IgnoreQueryFilters().Single());
@@ -63,14 +63,14 @@ namespace Test.UnitTests.SingleSoftDeleteAsyncTests
                 var book = context.AddBookWithReviewToDb();
 
                 var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(context, config);
+                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(config);
                 var status = await service.SetSoftDeleteAsync(book);
                 status.IsValid.ShouldBeTrue(status.GetAllErrors());
             }
             using (var context = new SingleSoftDelDbContext(options))
             {
                 var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(context, config);
+                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(config);
 
                 //ATTEMPT
                 var status = await service.HardDeleteSoftDeletedEntryAsync(context.Books.IgnoreQueryFilters().Single(), false);
@@ -96,14 +96,14 @@ namespace Test.UnitTests.SingleSoftDeleteAsyncTests
                 var book = context.AddBookWithReviewToDb();
 
                 var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(context, config);
+                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(config);
                 var status = await service.SetSoftDeleteAsync(book);
                 status.IsValid.ShouldBeTrue(status.GetAllErrors());
             }
             using (var context = new SingleSoftDelDbContext(options))
             {
                 var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(context, config);
+                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(config);
 
                 //ATTEMPT
                 var status = await service.HardDeleteViaKeysAsync<Book>(context.Books.IgnoreQueryFilters().Single().Id);
@@ -129,7 +129,7 @@ namespace Test.UnitTests.SingleSoftDeleteAsyncTests
                 var book = context.AddBookWithReviewToDb();
 
                 var config = new ConfigSoftDeleteWithUserId(context);
-                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(context, config);
+                var service = new SingleSoftDeleteServiceAsync<ISingleSoftDelete>(config);
                 var status1 = await service.SetSoftDeleteAsync(book);
                 status1.IsValid.ShouldBeTrue(status1.GetAllErrors());
 

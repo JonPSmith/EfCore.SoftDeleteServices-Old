@@ -7,10 +7,10 @@ using SoftDeleteServices.Configuration;
 
 namespace Test.ExampleConfigs
 {
-    public class ConfigSoftDeleteWithUserId : SoftDeleteConfiguration<ISingleSoftDelete, bool>
+    public class ConfigSoftDeleteWithUserIdTest : SoftDeleteConfiguration<ISingleSoftDelete, bool>
     {
 
-        public ConfigSoftDeleteWithUserId(SingleSoftDelDbContext context)
+        public ConfigSoftDeleteWithUserIdTest(SingleSoftDelDbContext context)
             : base(context)
         {
             GetSoftDeleteValue = entity => entity.SoftDeleted;

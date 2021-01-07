@@ -24,12 +24,11 @@ namespace SoftDeleteServices.Concrete
         /// <summary>
         /// Ctor for SoftDeleteService
         /// </summary>
-        /// <param name="context"></param>
         /// <param name="config"></param>
-        public SingleSoftDeleteServiceAsync(DbContext context, SoftDeleteConfiguration<TInterface, bool> config)
+        public SingleSoftDeleteServiceAsync(SoftDeleteConfiguration<TInterface, bool> config)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            _context = config.Context ?? throw new ArgumentNullException(nameof(config), "You must provide the DbContext");
 
             if (_config.GetSoftDeleteValue == null)
                 throw new InvalidOperationException($"You must set the {nameof(_config.GetSoftDeleteValue)} with a query to get the soft delete bool");

@@ -40,7 +40,7 @@ namespace Test.UnitTests.CascadeSoftDeleteAsyncTests
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
                 var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(context, config);
+                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(config);
 
                 var numSoftDeleted = (await service.SetCascadeSoftDeleteAsync(context.Employees.Single(x => x.Name == "CTO"))).Result;
                 numSoftDeleted.ShouldEqual(7 + 6);
@@ -68,7 +68,7 @@ namespace Test.UnitTests.CascadeSoftDeleteAsyncTests
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
                 var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(context, config);
+                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(config);
 
                 var numSoftDeleted = (await service.SetCascadeSoftDeleteAsync(context.Employees.Single(x => x.Name == "CTO"))).Result;
                 numSoftDeleted.ShouldEqual(7 + 6);
@@ -99,7 +99,7 @@ namespace Test.UnitTests.CascadeSoftDeleteAsyncTests
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
                 var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(context, config);
+                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(config);
 
                 var numSoftDeleted = (await service.SetCascadeSoftDeleteAsync(context.Employees.Single(x => x.Name == "CTO"))).Result;
                 numSoftDeleted.ShouldEqual(7 + 6);
@@ -126,7 +126,7 @@ namespace Test.UnitTests.CascadeSoftDeleteAsyncTests
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
                 var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(context, config);
+                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(config);
 
                 var numSoftDeleted = (await service.SetCascadeSoftDeleteAsync(context.Employees.Single(x => x.Name == "CTO"))).Result;
                 numSoftDeleted.ShouldEqual(7 + 6);
@@ -154,7 +154,7 @@ namespace Test.UnitTests.CascadeSoftDeleteAsyncTests
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
                 var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(context, config);
+                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(config);
 
                 var numInnerSoftDelete = (await service.SetCascadeSoftDeleteAsync(context.Employees.Single(x => x.Name == "ProjectManager1"))).Result;
                 numInnerSoftDelete.ShouldEqual(3 + 3);
@@ -188,7 +188,7 @@ namespace Test.UnitTests.CascadeSoftDeleteAsyncTests
                 var ceo = Employee.SeedEmployeeSoftDel(context);
 
                 var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(context, config);
+                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(config);
 
                 var numSoftDeleted = (await service.SetCascadeSoftDeleteAsync(context.Employees.Single(x => x.Name == "CTO"))).Result;
                 numSoftDeleted.ShouldEqual(7+6);
@@ -197,7 +197,7 @@ namespace Test.UnitTests.CascadeSoftDeleteAsyncTests
             using (var context = new CascadeSoftDelDbContext(options))
             {
                 var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(context, config);
+                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(config);
 
                 //ATTEMPT
                 var status = await service.ResetCascadeSoftDeleteAsync(context.Employees.IgnoreQueryFilters().Single(x => x.Name == "CTO"));
@@ -228,14 +228,14 @@ namespace Test.UnitTests.CascadeSoftDeleteAsyncTests
                 context.SaveChanges();
 
                 var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(context, config);
+                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(config);
                 (await service.SetCascadeSoftDeleteAsync(company)).Result.ShouldEqual(1 + 3 + 3);
             }
 
             using (var context = new CascadeSoftDelDbContext(options, userId))
             {
                 var config = new ConfigCascadeDeleteWithUserId(context);
-                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(context, config);
+                var service = new CascadeSoftDelServiceAsync<ICascadeSoftDelete>(config);
 
                 //ATTEMPT
                 var status = await service.ResetCascadeSoftDeleteAsync(context.Companies.IgnoreQueryFilters().Single());

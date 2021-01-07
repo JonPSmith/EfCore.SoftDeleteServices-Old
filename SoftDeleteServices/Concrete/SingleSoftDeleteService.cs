@@ -14,7 +14,7 @@ namespace SoftDeleteServices.Concrete
     /// This service handles single soft delete, i.e. it only soft deletes a single entity by setting a boolean flag in that entity
     /// </summary>
     /// <typeparam name="TInterface">You provide the interface you applied to your entity classes to require a boolean flag</typeparam>
-    public class SingleSoftDeleteService<TInterface>
+    public class SingleSoftDeleteService<TInterface> 
         where TInterface : class
     {
         private readonly DbContext _context;
@@ -23,12 +23,11 @@ namespace SoftDeleteServices.Concrete
         /// <summary>
         /// Ctor for SoftDeleteService
         /// </summary>
-        /// <param name="context"></param>
         /// <param name="config"></param>
-        public SingleSoftDeleteService(DbContext context, SoftDeleteConfiguration<TInterface, bool> config)
+        public SingleSoftDeleteService(SoftDeleteConfiguration<TInterface, bool> config)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            _context = config.Context ?? throw new ArgumentNullException(nameof(config), "You must provide the DbContext");
 
             if (_config.GetSoftDeleteValue == null)
                 throw new InvalidOperationException($"You must set the {nameof(_config.GetSoftDeleteValue)} with a query to get the soft delete bool");

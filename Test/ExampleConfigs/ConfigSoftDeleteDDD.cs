@@ -2,6 +2,7 @@
 // Licensed under MIT license. See License.txt in the project root for license information.
 
 using DataLayer.Interfaces;
+using DataLayer.SingleEfCode;
 using SoftDeleteServices.Configuration;
 
 namespace Test.ExampleConfigs
@@ -9,7 +10,8 @@ namespace Test.ExampleConfigs
     public class ConfigSoftDeleteDDD : SoftDeleteConfiguration<ISingleSoftDeletedDDD, bool>
     {
 
-        public ConfigSoftDeleteDDD()
+        public ConfigSoftDeleteDDD(SingleSoftDelDbContext context)
+            : base(context)
         {
             GetSoftDeleteValue = entity => entity.SoftDeleted;
             SetSoftDeleteValue = (entity, value) => entity.ChangeSoftDeleted(value);

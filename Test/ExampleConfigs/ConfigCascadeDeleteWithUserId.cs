@@ -11,6 +11,7 @@ namespace Test.ExampleConfigs
     {
 
         public ConfigCascadeDeleteWithUserId(CascadeSoftDelDbContext context)
+            : base(context)
         {
             GetSoftDeleteValue = entity => entity.SoftDeleteLevel;
             SetSoftDeleteValue = (entity, value) => { entity.SoftDeleteLevel = value; };
