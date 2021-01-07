@@ -141,7 +141,7 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         {
             //SETUP
             var currentUser = Guid.NewGuid();
-            int bookId;
+            int orderId;
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
             using (var context = new SingleSoftDelDbContext(options))
             {
@@ -156,7 +156,7 @@ namespace Test.UnitTests.SingleSoftDeleteTests
                     { OrderRef = "Diff user Order", SoftDeleted = false, UserId = Guid.NewGuid() };
                 context.AddRange(order1, order2, order3, order4);
                 context.SaveChanges();
-                bookId = order1.Id;
+                orderId = order1.Id;
             }
             using (var context = new SingleSoftDelDbContext(options, currentUser))
             {
@@ -164,7 +164,7 @@ namespace Test.UnitTests.SingleSoftDeleteTests
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
-                var status = service.ResetSoftDeleteViaKeys<Order>(bookId);
+                var status = service.ResetSoftDeleteViaKeys<Order>(orderId);
 
                 //VERIFY
                 status.IsValid.ShouldBeTrue(status.GetAllErrors());
@@ -179,7 +179,7 @@ namespace Test.UnitTests.SingleSoftDeleteTests
         {
             //SETUP
             var currentUser = Guid.NewGuid();
-            int bookId;
+            int orderId;
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
             using (var context = new SingleSoftDelDbContext(options))
             {
@@ -194,7 +194,7 @@ namespace Test.UnitTests.SingleSoftDeleteTests
                     { OrderRef = "Diff user Order", SoftDeleted = false, UserId = Guid.NewGuid() };
                 context.AddRange(order1, order2, order3, order4);
                 context.SaveChanges();
-                bookId = order3.Id;
+                orderId = order3.Id;
             }
             using (var context = new SingleSoftDelDbContext(options, currentUser))
             {
@@ -202,7 +202,7 @@ namespace Test.UnitTests.SingleSoftDeleteTests
                 var service = new SingleSoftDeleteService<ISingleSoftDelete>(context, config);
 
                 //ATTEMPT
-                var status = service.ResetSoftDeleteViaKeys<Order>(bookId);
+                var status = service.ResetSoftDeleteViaKeys<Order>(orderId);
 
                 //VERIFY
                 status.IsValid.ShouldBeFalse();

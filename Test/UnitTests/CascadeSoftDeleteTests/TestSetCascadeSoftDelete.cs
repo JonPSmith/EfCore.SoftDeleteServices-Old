@@ -559,5 +559,33 @@ namespace Test.UnitTests.CascadeSoftDeleteTests
             }
         }
 
+        [Fact]
+        public void TestCascadeDeleteQuoteDoesNotSoftDeleteCompanyOk()
+        {
+            //SETUP
+            var userId = Guid.NewGuid();
+            var options = SqliteInMemory.CreateOptions<CascadeSoftDelDbContext>();
+            using (var context = new CascadeSoftDelDbContext(options, userId))
+            {
+                context.Database.EnsureCreated();
+                var company = Company.SeedCompanyWithQuotes(context, userId);
+                company.Quotes.First().UserId = Guid.NewGuid();
+                context.SaveChanges();
+
+                var config = new ConfigCascadeDeleteWithUserId(context);
+                var service = new CascadeSoftDelService<ICascadeSoftDelete>(context, config);
+
+                //ATTEMPT
+                var status = service.SetCascadeSoftDelete(company.Quotes.First());
+
+                //VERIFY
+                status.IsValid.ShouldBeTrue(status.GetAllErrors());
+                status.Result.ShouldEqual(1 + 1);
+                status.Message.ShouldEqual("You have soft deleted an entity and its 1 dependents");
+                context.Companies.Count().ShouldEqual(1);
+                context.Quotes.Count().ShouldEqual(3);
+            }
+        }
+
     }
 }
