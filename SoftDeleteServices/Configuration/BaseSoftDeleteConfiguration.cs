@@ -8,10 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SoftDeleteServices.Configuration
 {
-    public class BaseSoftDeleteConfiguration<TInterface> 
-        where TInterface : class
+    public class BaseSoftDeleteConfiguration
     {
-        public BaseSoftDeleteConfiguration(DbContext context)
+        protected BaseSoftDeleteConfiguration(DbContext context)
         {
             Context = context;
         }
@@ -19,7 +18,7 @@ namespace SoftDeleteServices.Configuration
         /// <summary>
         /// This is used by the soft delete services to gain access to the specific DbContext used
         /// </summary>
-        public DbContext Context { get; }
+        internal DbContext Context { get; }
 
         /// <summary>
         /// If you have other query filters, such as a multi-tenant system with a UserId or DataKey,

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SoftDeleteServices.Configuration
 {
-    public class CascadeSoftDeleteConfiguration<TInterface> : BaseSoftDeleteConfiguration<TInterface> 
+    public class CascadeSoftDeleteConfiguration<TInterface> : BaseSoftDeleteConfiguration 
         where TInterface : class
     {
         public CascadeSoftDeleteConfiguration(DbContext context) : base(context)
