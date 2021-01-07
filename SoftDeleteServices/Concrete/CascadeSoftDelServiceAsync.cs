@@ -20,13 +20,13 @@ namespace SoftDeleteServices.Concrete
         where TInterface : class
     {
         private readonly DbContext _context;
-        private readonly SoftDeleteConfiguration<TInterface, byte> _config;
+        private readonly CascadeSoftDeleteConfiguration<TInterface> _config;
 
         /// <summary>
         /// This provides a equivalent to a SQL cascade delete, but using a soft delete approach.
         /// </summary>
         /// <param name="config"></param>
-        public CascadeSoftDelServiceAsync(SoftDeleteConfiguration<TInterface, byte> config)
+        public CascadeSoftDelServiceAsync(CascadeSoftDeleteConfiguration<TInterface> config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _context = config.Context ?? throw new ArgumentNullException(nameof(config), "You must provide the DbContext");

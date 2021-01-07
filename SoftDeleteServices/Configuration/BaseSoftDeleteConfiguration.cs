@@ -8,11 +8,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SoftDeleteServices.Configuration
 {
-    public class SoftDeleteConfiguration<TInterface, TYourValue> 
+    public class BaseSoftDeleteConfiguration<TInterface> 
         where TInterface : class
-        where TYourValue : struct
     {
-        public SoftDeleteConfiguration(DbContext context)
+        public BaseSoftDeleteConfiguration(DbContext context)
         {
             Context = context;
         }
@@ -21,18 +20,6 @@ namespace SoftDeleteServices.Configuration
         /// This is used by the soft delete services to gain access to the specific DbContext used
         /// </summary>
         public DbContext Context { get; }
-
-        /// <summary>
-        /// This should contain a LINQ query that returns the soft delete value - MUST work in EF Core query
-        /// e.g. entity => entity.SoftDeleted
-        /// </summary>
-        public Expression<Func<TInterface, TYourValue>> GetSoftDeleteValue { get; set; }
-
-        /// <summary>
-        /// This should contain an action to set the soft delete value
-        /// e.g. (entity, value) => { entity.SoftDeleted = value; };
-        /// </summary>
-        public Action<TInterface, TYourValue> SetSoftDeleteValue { get; set; }
 
         /// <summary>
         /// If you have other query filters, such as a multi-tenant system with a UserId or DataKey,
@@ -60,15 +47,5 @@ namespace SoftDeleteServices.Configuration
         public string TextHardDeletedPastTense { get; set; } = "hard deleted";
 
         public string TextResetSoftDelete { get; set; } = "reset the soft delete";
-
-        //------------------------------------------------
-        //Cascade only properties
-
-        /// <summary>
-        /// If you are using my approach to collections, where a collection is null if it isn't loaded, then you can
-        /// improve the performance of Cascade soft delete by loading the entity with Includes to load the collections and setting this property to false
-        /// NOTE: It only works on SetCascadeSoftDelete as on the reset you can't include soft deleted entities 
-        /// </summary>
-        public bool ReadEveryTime { get; set; } = true;
     }
 }

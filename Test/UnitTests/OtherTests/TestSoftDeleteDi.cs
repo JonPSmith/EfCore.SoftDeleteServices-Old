@@ -27,15 +27,35 @@ namespace Test.UnitTests.OtherTests
             //ATTEMPT
             var services = new ServiceCollection();
             services.AddScoped(x => context);
-            services.AddSingleton<SoftDeleteConfiguration<ISingleSoftDelete, bool>, ConfigSoftDeleteWithUserId>();
+            services.AddSingleton<SingleSoftDeleteConfiguration<ISingleSoftDelete>, ConfigSoftDeleteWithUserId>();
             services.AddTransient<SingleSoftDeleteService<ISingleSoftDelete>>();
             var serviceProvider = services.BuildServiceProvider();
 
             //VERIFY
             var service1 = serviceProvider.GetRequiredService<SingleSoftDelDbContext>();
-            var service2 = serviceProvider.GetRequiredService<SoftDeleteConfiguration<ISingleSoftDelete, bool>>();
+            var service2 = serviceProvider.GetRequiredService<SingleSoftDeleteConfiguration<ISingleSoftDelete>>();
             var service3 = serviceProvider.GetRequiredService<SingleSoftDeleteService<ISingleSoftDelete>>();
-        }        
-        
+        }
+
+        [Fact]
+        public void TestRegisterServiceManuallyTestOk()
+        {
+            //SETUP
+            var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
+            var context = new SingleSoftDelDbContext(options);
+
+            //ATTEMPT
+            var services = new ServiceCollection();
+            services.AddScoped(x => context);
+            services.AddSingleton< ConfigSoftDeleteWithUserId >();
+            services.AddTransient<SingleSoftDeleteService<ISingleSoftDelete>>();
+            var serviceProvider = services.BuildServiceProvider();
+
+            //VERIFY
+            var service1 = serviceProvider.GetRequiredService<SingleSoftDelDbContext>();
+            var service2 = serviceProvider.GetRequiredService<SingleSoftDeleteConfiguration<ISingleSoftDelete>>();
+            var service3 = serviceProvider.GetRequiredService<SingleSoftDeleteService<ISingleSoftDelete>>();
+        }
+
     }
 }

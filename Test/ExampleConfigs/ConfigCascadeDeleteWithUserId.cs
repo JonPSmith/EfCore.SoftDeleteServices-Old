@@ -7,7 +7,7 @@ using SoftDeleteServices.Configuration;
 
 namespace Test.ExampleConfigs
 {
-    public class ConfigCascadeDeleteWithUserId : SoftDeleteConfiguration<ICascadeSoftDelete, byte>
+    public class ConfigCascadeDeleteWithUserId : CascadeSoftDeleteConfiguration<ICascadeSoftDelete>
     {
 
         public ConfigCascadeDeleteWithUserId(CascadeSoftDelDbContext context)

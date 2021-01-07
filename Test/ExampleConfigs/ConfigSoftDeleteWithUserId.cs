@@ -7,7 +7,7 @@ using SoftDeleteServices.Configuration;
 
 namespace Test.ExampleConfigs
 {
-    public class ConfigSoftDeleteWithUserId : SoftDeleteConfiguration<ISingleSoftDelete, bool>
+    public class ConfigSoftDeleteWithUserId : SingleSoftDeleteConfiguration<ISingleSoftDelete>
     {
 
         public ConfigSoftDeleteWithUserId(SingleSoftDelDbContext context)

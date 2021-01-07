@@ -7,7 +7,7 @@ using SoftDeleteServices.Configuration;
 
 namespace Test.ExampleConfigs
 {
-    public class ConfigSoftDeleteDDD : SoftDeleteConfiguration<ISingleSoftDeletedDDD, bool>
+    public class ConfigSoftDeleteDDD : SingleSoftDeleteConfiguration<ISingleSoftDeletedDDD>
     {
 
         public ConfigSoftDeleteDDD(SingleSoftDelDbContext context)

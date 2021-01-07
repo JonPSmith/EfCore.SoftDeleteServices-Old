@@ -19,13 +19,13 @@ namespace SoftDeleteServices.Concrete
         where TInterface : class
     {
         private readonly DbContext _context;
-        private readonly SoftDeleteConfiguration<TInterface, bool> _config;
+        private readonly SingleSoftDeleteConfiguration<TInterface> _config;
 
         /// <summary>
         /// Ctor for SoftDeleteService
         /// </summary>
         /// <param name="config"></param>
-        public SingleSoftDeleteServiceAsync(SoftDeleteConfiguration<TInterface, bool> config)
+        public SingleSoftDeleteServiceAsync(SingleSoftDeleteConfiguration<TInterface> config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _context = config.Context ?? throw new ArgumentNullException(nameof(config), "You must provide the DbContext");

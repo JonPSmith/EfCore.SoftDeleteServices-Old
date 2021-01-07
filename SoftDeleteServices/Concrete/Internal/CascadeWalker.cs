@@ -17,7 +17,7 @@ namespace SoftDeleteServices.Concrete.Internal
         where TInterface : class
     {
         private readonly DbContext _context;
-        private readonly SoftDeleteConfiguration<TInterface, byte> _config;
+        private readonly CascadeSoftDeleteConfiguration<TInterface> _config;
         private readonly bool _isAsync;
         private readonly CascadeSoftDelWhatDoing _whatDoing;
         private readonly bool _readEveryTime;
@@ -26,7 +26,7 @@ namespace SoftDeleteServices.Concrete.Internal
 
         public int NumFound { get; private set; }
 
-        public CascadeWalker(DbContext context, SoftDeleteConfiguration<TInterface, byte> config,
+        public CascadeWalker(DbContext context, CascadeSoftDeleteConfiguration<TInterface> config,
             bool isAsync,
             CascadeSoftDelWhatDoing whatDoing, bool readEveryTime)
         {
@@ -185,7 +185,7 @@ namespace SoftDeleteServices.Concrete.Internal
                     : _queryOfFilteredEntities.ToList();
             }
 
-            public GenericCollectionLoader(DbContext context, SoftDeleteConfiguration<TInterface, byte> config, bool isAsync,
+            public GenericCollectionLoader(DbContext context, CascadeSoftDeleteConfiguration<TInterface> config, bool isAsync,
                 object principalInstance, PropertyInfo propertyInfo, byte levelToLookFor)
             {
                 _isAsync = isAsync;
@@ -230,7 +230,7 @@ namespace SoftDeleteServices.Concrete.Internal
                     : _queryOfFilteredSingle.SingleOrDefault();
             }
 
-            public GenericSingletonLoader(DbContext context, SoftDeleteConfiguration<TInterface, byte> config, bool isAsync,
+            public GenericSingletonLoader(DbContext context, CascadeSoftDeleteConfiguration<TInterface> config, bool isAsync,
                 object principalInstance, PropertyInfo propertyInfo, byte levelToLookFor)
             {
                 _isAsync = isAsync;

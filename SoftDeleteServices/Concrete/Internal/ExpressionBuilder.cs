@@ -23,7 +23,7 @@ namespace SoftDeleteServices.Concrete.Internal
         /// <param name="config"></param>
         /// <returns></returns>
         public static Expression<Func<TEntity, bool>> FilterToGetValueSingleSoftDeletedEntities<TEntity, TInterface>(
-            this SoftDeleteConfiguration<TInterface, bool> config)
+            this SingleSoftDeleteConfiguration<TInterface> config)
             where TInterface : class
             where TEntity : TInterface
         {
@@ -40,7 +40,7 @@ namespace SoftDeleteServices.Concrete.Internal
         /// <param name="levelToLookFor"></param>
         /// <returns></returns>
         public static Expression<Func<TEntity, bool>> FilterToGetValueCascadeSoftDeletedEntities<TEntity, TInterface>(
-            this SoftDeleteConfiguration<TInterface, byte> config, byte levelToLookFor)
+            this CascadeSoftDeleteConfiguration<TInterface> config, byte levelToLookFor)
             where TInterface : class
             where TEntity : TInterface
         {
