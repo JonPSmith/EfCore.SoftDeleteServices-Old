@@ -26,6 +26,8 @@ namespace DataLayer.SingleEfCode
         public DbSet<Order> Orders { get; set; }
 
         public DbSet<BookDDD> BookDdds { get; set; }
+        
+        public DbSet<ShadowDelClass> ShadowDelClasses { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -46,6 +48,11 @@ namespace DataLayer.SingleEfCode
                     entityType.SetSingleQueryFilter(SingleQueryFilterTypes.SingleSoftDeleteDdd);
                 }
             }
+
+            modelBuilder.Entity<ShadowDelClass>()
+                .Property<bool>("SoftDeleted");
+            modelBuilder.Entity<ShadowDelClass>()
+                .HasQueryFilter(x => !EF.Property<bool>(x, "SoftDeleted"));
         }
     }
 }
