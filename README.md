@@ -9,9 +9,13 @@ I have written two services.
 
 *The cascade soft delete is pretty clever, and can handle multi-level soft deletes - see [this sction](https://www.thereformedprogrammer.net/ef-core-in-depth-soft-deleting-data-with-global-query-filters/#building-solution-3-cascade-softdeleteservice) from my article [EF Core In depth – Soft deleting data with Global Query Filters](https://www.thereformedprogrammer.net/ef-core-in-depth-soft-deleting-data-with-global-query-filters/).*
 
-The code works, but needs a few more features before I turn it into a general NuGet library - see [ReleaseNotes.md](https://github.com/JonPSmith/EfCore.SoftDeleteServices/blob/master/ReleaseNotes.md) file for what needs to be done. **If you want to try it now then take a copy** - most of the methods have comments on them and the unit tests provides some good examples.
+## Limitations
 
-BE WARNED: This code uses preview release of EF Core 5, which has a few nice features in it that makes it easier to write.
+- When loading via keys it assumes the primary key property(s) are properties.
+- The navigational links have to be properties.
+- Currently the soft delete property can't be a shadow property.
+
+All of these limitattions could be removed, but it takes time to implement and check.
 
 ## General information on how the simple and cascade methods work
 

@@ -10,7 +10,9 @@ using DataLayer.Interfaces;
 using DataLayer.SingleEfClasses;
 using DataLayer.SingleEfCode;
 using Microsoft.EntityFrameworkCore;
+using SoftDeleteServices.Concrete;
 using SoftDeleteServices.Concrete.Internal;
+using SoftDeleteServices.Configuration;
 using Test.ExampleConfigs;
 using TestSupport.EfHelpers;
 using Xunit;
@@ -26,6 +28,31 @@ namespace Test.UnitTests.OtherTests
         public TestSoftDeleteConfiguration(ITestOutputHelper output)
         {
             _output = output;
+        }
+
+        private class BadConfig : SingleSoftDeleteConfiguration<ISingleSoftDelete>
+        {
+            public BadConfig(SingleSoftDelDbContext context)
+                : base(context) { }
+        }
+
+        [Fact]
+        public void TestBadConfigurationOk()
+        {
+            //SETUP
+            var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
+            using (var context = new SingleSoftDelDbContext(options))
+            {
+                context.Database.EnsureCreated();
+
+                var config = new BadConfig(context);
+
+                //ATTEMPT
+                var ex = Assert.Throws<InvalidOperationException>(() => new SingleSoftDeleteService<ISingleSoftDelete>(config));
+
+                //VERIFY
+                ex.Message.ShouldEqual("You must set the GetSoftDeleteValue with a query to get the soft delete bool");
+            }
         }
 
         [Fact]
@@ -59,6 +86,7 @@ namespace Test.UnitTests.OtherTests
                 result.Count.ShouldEqual(1);
             }
         }
+        
         [Fact]
         public void TestExpressionBuilderFormOtherFiltersOnlyWithUserIdOk()
         {

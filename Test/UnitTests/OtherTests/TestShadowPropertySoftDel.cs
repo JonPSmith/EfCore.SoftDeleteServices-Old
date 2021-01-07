@@ -47,7 +47,7 @@ namespace Test.UnitTests.OtherTests
         }
 
         [Fact]
-        public void TestSoftDeleteServiceSetSoftDeleteOk()
+        public void TestSetSoftDeleteOk()
         {
             //SETUP
             var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
@@ -70,6 +70,54 @@ namespace Test.UnitTests.OtherTests
             status.Result.ShouldEqual(1);
             context.ShadowDelClasses.Count().ShouldEqual(0);
             context.ShadowDelClasses.IgnoreQueryFilters().Count().ShouldEqual(1);
+        }
+
+        [Fact]
+        public void TestResetSoftDeleteOk()
+        {
+            //SETUP
+            var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
+            using var context = new SingleSoftDelDbContext(options);
+            context.Database.EnsureCreated();
+            var shadowClass = new ShadowDelClass();
+            context.Add(shadowClass);
+            context.Entry(shadowClass).Property("SoftDeleted").CurrentValue = true;
+            context.SaveChanges();
+
+            var config = new ConfigSoftDeleteShadowDel(context);
+            var service = new SingleSoftDeleteService<IShadowSoftDelete>(config);
+
+            //ATTEMPT
+            var status = service.ResetSoftDelete(shadowClass);
+
+            //VERIFY
+            status.IsValid.ShouldBeTrue(status.GetAllErrors());
+            status.Result.ShouldEqual(1);
+            context.ShadowDelClasses.Count().ShouldEqual(1);
+        }
+
+        [Fact]
+        public void TestGetSoftDeleteOk()
+        {
+            //SETUP
+            var options = SqliteInMemory.CreateOptions<SingleSoftDelDbContext>();
+            using var context = new SingleSoftDelDbContext(options);
+            context.Database.EnsureCreated();
+            var shadowClass = new ShadowDelClass();
+            context.Add(shadowClass);
+            context.Entry(shadowClass).Property("SoftDeleted").CurrentValue = true;
+            context.SaveChanges();
+            
+            context.ChangeTracker.Clear();
+
+            var config = new ConfigSoftDeleteShadowDel(context);
+            var service = new SingleSoftDeleteService<IShadowSoftDelete>(config);
+
+            //ATTEMPT
+            var entities = service.GetSoftDeletedEntries<ShadowDelClass>().ToList();
+
+            //VERIFY
+            entities.Count().ShouldEqual(1);
         }
 
 
